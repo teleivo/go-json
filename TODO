@@ -1,0 +1,8 @@
+# TODO
+
+## IDEAS
+
+* adapt lexer to use io.Reader and filename
+* provide context to error messages. in what file, line, col is the error.
+* write a CLI that takes a JSON from stdin to parse it
+* support unicode
