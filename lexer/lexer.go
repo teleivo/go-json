@@ -1,6 +1,8 @@
 package lexer
 
-import "github.com/teleivo/go-template/token"
+import (
+	"github.com/teleivo/go-template/token"
+)
 
 type Lexer struct {
 	input        string
@@ -33,8 +35,6 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.COMMA, l.ch)
 	case ':':
 		tok = newToken(token.COLON, l.ch)
-	case '"':
-		tok = newToken(token.QUOTE, l.ch)
 	case '{':
 		tok = newToken(token.LBRACE, l.ch)
 	case '}':
@@ -43,15 +43,52 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.LBRACKET, l.ch)
 	case ']':
 		tok = newToken(token.RBRACKET, l.ch)
-	case 0:
+	case '"':
+		tok.Type = token.STRING
+		tok.Literal = l.readString()
+	case 0: // NUL byte
 		tok.Literal = ""
 		tok.Type = token.EOF
+	case ' ', '\t', '\n', '\b', '\r', '\f': // eat up whitespace outside of strings
+		l.readChar()
+		return l.NextToken()
+	default:
+		if isNumber(l.ch) {
+			tok.Literal = l.readNumber()
+			tok.Type = token.NUMBER
+			return tok
+		}
+		tok = newToken(token.ILLEGAL, l.ch)
 	}
 
 	l.readChar()
 	return tok
 }
 
+func (l *Lexer) readString() string {
+	// TODO implement control characters
+	l.readChar() // do not include the outer quotes in the string value
+	pos := l.position
+	for l.ch != '"' {
+		l.readChar()
+	}
+	return l.input[pos:l.position]
+}
+
+func (l *Lexer) readNumber() string {
+	pos := l.position
+	for isNumber(l.ch) {
+		l.readChar()
+	}
+	return l.input[pos:l.position]
+}
+
 func newToken(t token.TokenType, ch byte) token.Token {
 	return token.Token{Type: t, Literal: string(ch)}
+}
+
+func isNumber(ch byte) bool {
+	// TODO its more complicated than that. find out all the valid numbers in
+	// JSON. https://www.json.org/json-en.html
+	return '0' <= ch && ch <= '9'
 }

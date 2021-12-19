@@ -7,35 +7,43 @@ import (
 )
 
 func TestNextToken(t *testing.T) {
-	input := `{}[],:"`
+	input := `{"cookies": 200, "ingredients": ["flour", "salt"]}`
 
 	tests := []struct {
 		expectedType    token.TokenType
 		expectedLiteral string
 	}{
 		{token.LBRACE, "{"},
-		{token.RBRACE, "}"},
-		{token.LBRACKET, "["},
-		{token.RBRACKET, "]"},
-		{token.COMMA, ","},
+		{token.STRING, "cookies"},
 		{token.COLON, ":"},
-		{token.QUOTE, "\""},
+		{token.NUMBER, "200"},
+		{token.COMMA, ","},
+		{token.STRING, "ingredients"},
+		{token.COLON, ":"},
+		{token.LBRACKET, "["},
+		{token.STRING, "flour"},
+		{token.COMMA, ","},
+		{token.STRING, "salt"},
+		{token.RBRACKET, "]"},
+		{token.RBRACE, "}"},
 		{token.EOF, ""},
 	}
 
 	l := New(input)
 
-	for i, tt := range tests {
+	for _, tt := range tests {
 		tok := l.NextToken()
 
 		if tok.Type != tt.expectedType {
-			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
-				i, tt.expectedType, tok.Type)
+			t.Fatalf("character %q - tokentype wrong. got=%q, want=%q",
+				l.ch, tok.Type, tt.expectedType)
 		}
 
 		if tok.Literal != tt.expectedLiteral {
-			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
-				i, tt.expectedLiteral, tok.Literal)
+			t.Fatalf("character %q - tokentype wrong. got=%q, want=%q",
+				l.ch, tok.Literal, tt.expectedLiteral)
 		}
 	}
+
+	// TODO add focused tests for string and number
 }
