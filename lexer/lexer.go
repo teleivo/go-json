@@ -73,7 +73,7 @@ func (l *Lexer) NextToken() token.Token {
 }
 
 func (l *Lexer) readString() string {
-	// TODO what if the string never has a closing quote
+	// TODO read unicode \u1234
 	l.readChar() // do not include the outer quotes in the string value
 	pos := l.position
 	for l.ch != '"' && l.ch != 0 {

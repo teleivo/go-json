@@ -7,7 +7,7 @@ import (
 )
 
 func TestNextToken(t *testing.T) {
-	t.Run("CompleteJSON", func(t *testing.T) {
+	t.Run("LexCompleteJSON", func(t *testing.T) {
 		input := `{"cookies": 200, "ingredients": ["flour", "salt"]}`
 
 		tests := []struct {
@@ -57,6 +57,7 @@ func TestNextToken(t *testing.T) {
 			{`"french\nfries"`, `french\nfries`},
 			{`"french\tfries\r\n"`, `french\tfries\r\n`},
 			{`"french\"fries\"`, `french\"fries\"`},
+			{`"\/french\\fries\b"`, `\/french\\fries\b`},
 		}
 
 		for _, tt := range tests {
