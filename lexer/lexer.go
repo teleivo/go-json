@@ -27,6 +27,13 @@ func (l *Lexer) readChar() {
 	l.readPosition += 1
 }
 
+func (l *Lexer) peek() byte {
+	if l.readPosition >= len(l.input) {
+		return 0 // ASCII code for "NUL" character
+	}
+	return l.input[l.readPosition]
+}
+
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
 
@@ -66,11 +73,17 @@ func (l *Lexer) NextToken() token.Token {
 }
 
 func (l *Lexer) readString() string {
-	// TODO implement control characters
+	// TODO what if the string never has a closing quote
 	l.readChar() // do not include the outer quotes in the string value
 	pos := l.position
-	for l.ch != '"' {
-		l.readChar()
+	for l.ch != '"' && l.ch != 0 {
+		if l.ch == '\\' && l.peek() == '"' {
+			// move two characters
+			l.readChar()
+			l.readChar()
+		} else {
+			l.readChar()
+		}
 	}
 	return l.input[pos:l.position]
 }
