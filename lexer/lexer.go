@@ -37,6 +37,8 @@ func (l *Lexer) peek() byte {
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
 
+	l.skipWhitespace()
+
 	switch l.ch {
 	case ',':
 		tok = newToken(token.COMMA, l.ch)
@@ -56,9 +58,6 @@ func (l *Lexer) NextToken() token.Token {
 	case 0: // NUL byte
 		tok.Literal = ""
 		tok.Type = token.EOF
-	case ' ', '\t', '\n', '\b', '\r', '\f': // eat up whitespace outside of strings
-		l.readChar()
-		return l.NextToken()
 	default:
 		if isNumber(l.ch) {
 			tok.Literal = l.readNumber()
@@ -70,6 +69,12 @@ func (l *Lexer) NextToken() token.Token {
 
 	l.readChar()
 	return tok
+}
+
+func (l *Lexer) skipWhitespace() {
+	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\b' || l.ch == '\r' || l.ch == '\f' {
+		l.readChar()
+	}
 }
 
 func (l *Lexer) readString() string {
