@@ -76,7 +76,6 @@ func TestNextToken(t *testing.T) {
 			}
 		}
 	})
-	// TODO add focused tests for number
 	t.Run("LexNumbers", func(t *testing.T) {
 		tests := []struct {
 			input           string
@@ -107,6 +106,47 @@ func TestNextToken(t *testing.T) {
 			if tok.Type != token.NUMBER {
 				t.Fatalf("input %q - token type wrong. got=%s, want=%s",
 					tt.input, tok.Type, token.STRING)
+			}
+
+			if tok.Literal != tt.expectedLiteral {
+				t.Fatalf("input %q - token literal wrong. got=%s, want=%s",
+					tt.input, tok.Literal, tt.expectedLiteral)
+			}
+		}
+	})
+	t.Run("LexInvalidNumbers", func(t *testing.T) {
+		tests := []struct {
+			input           string
+			expectedLiteral string
+		}{
+			{"a200", "a"},
+			{"_200", "_"},
+			{"+200", "+"},
+			{"e200", "e"},
+			{"E200", "E"},
+			{".200", "."},
+			{"-.200", ""},
+			// {"+.200"},
+			// {"0.e+100"},
+			// {"0.e-100"},
+			// {"0.e100"},
+			// {"0.E+100"},
+			// {"0.E-100"},
+			// {"0.E100"},
+			// {"0.200+e100"},
+			// {"0.200-e100"},
+			// {"0.200+E100"},
+			// {"0.200-E100"},
+		}
+
+		for _, tt := range tests {
+			l := New(tt.input)
+
+			tok := l.NextToken()
+
+			if tok.Type != token.ILLEGAL {
+				t.Fatalf("input %q - token type wrong. got=%s, want=%s",
+					tt.input, tok.Type, token.ILLEGAL)
 			}
 
 			if tok.Literal != tt.expectedLiteral {

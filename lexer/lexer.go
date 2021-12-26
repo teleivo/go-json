@@ -1,6 +1,8 @@
 package lexer
 
 import (
+	"errors"
+
 	"github.com/teleivo/go-template/token"
 )
 
@@ -27,7 +29,7 @@ func (l *Lexer) readChar() {
 	l.readPosition += 1
 }
 
-func (l *Lexer) peek() byte {
+func (l *Lexer) peekChar() byte {
 	if l.readPosition >= len(l.input) {
 		return 0 // ASCII code for "NUL" character
 	}
@@ -60,8 +62,13 @@ func (l *Lexer) NextToken() token.Token {
 		tok.Type = token.EOF
 	default:
 		if isNumber(l.ch) {
-			tok.Literal = l.readNumber()
-			tok.Type = token.NUMBER
+			lit, err := l.readNumber()
+			tok.Literal = lit
+			if err != nil {
+				tok.Type = token.ILLEGAL
+			} else {
+				tok.Type = token.NUMBER
+			}
 			return tok
 		}
 		tok = newToken(token.ILLEGAL, l.ch)
@@ -82,7 +89,7 @@ func (l *Lexer) readString() string {
 	l.readChar() // do not include the outer quotes in the string value
 	pos := l.position
 	for l.ch != '"' && l.ch != 0 {
-		if l.ch == '\\' && l.peek() == '"' {
+		if l.ch == '\\' && l.peekChar() == '"' {
 			// move two characters
 			l.readChar()
 			l.readChar()
@@ -93,12 +100,15 @@ func (l *Lexer) readString() string {
 	return l.input[pos:l.position]
 }
 
-func (l *Lexer) readNumber() string {
+func (l *Lexer) readNumber() (string, error) {
 	pos := l.position
 	for isNumber(l.ch) || l.ch == '.' || l.ch == '-' || l.ch == '+' || l.ch == 'e' || l.ch == 'E' {
+		if l.peekChar() == '.' && !isDigit(l.ch) {
+			return "", errors.New("invalid number: '.' needs to be preceded by a digit")
+		}
 		l.readChar()
 	}
-	return l.input[pos:l.position]
+	return l.input[pos:l.position], nil
 }
 
 func newToken(t token.TokenType, ch byte) token.Token {
@@ -106,7 +116,9 @@ func newToken(t token.TokenType, ch byte) token.Token {
 }
 
 func isNumber(ch byte) bool {
-	// TODO its more complicated than that. find out all the valid numbers in
-	// JSON. https://www.json.org/json-en.html
-	return '0' <= ch && ch <= '9' || ch == '-'
+	return isDigit(ch) || ch == '-'
+}
+
+func isDigit(ch byte) bool {
+	return '0' <= ch && ch <= '9'
 }
