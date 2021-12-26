@@ -77,4 +77,42 @@ func TestNextToken(t *testing.T) {
 		}
 	})
 	// TODO add focused tests for number
+	t.Run("LexNumbers", func(t *testing.T) {
+		tests := []struct {
+			input           string
+			expectedLiteral string
+		}{
+			{"200", "200"},
+			{"200.3", "200.3"},
+			{"0.31", "0.31"},
+			{"-0.31", "-0.31"},
+			{"-200.3", "-200.3"},
+			{"-200.3", "-200.3"},
+			{"-200.3e1", "-200.3e1"},
+			{"-200.3e+1", "-200.3e+1"},
+			{"-200.3e-1", "-200.3e-1"},
+			{"-200.3E1", "-200.3E1"},
+			{"-200.3E+12", "-200.3E+12"},
+			{"-200.3E-12", "-200.3E-12"},
+			{"0.31e100", "0.31e100"},
+			// TODO would the lexer already implement this "state machine"?
+			// there can only be one '.', one '-'
+		}
+
+		for _, tt := range tests {
+			l := New(tt.input)
+
+			tok := l.NextToken()
+
+			if tok.Type != token.NUMBER {
+				t.Fatalf("input %q - token type wrong. got=%s, want=%s",
+					tt.input, tok.Type, token.STRING)
+			}
+
+			if tok.Literal != tt.expectedLiteral {
+				t.Fatalf("input %q - token literal wrong. got=%s, want=%s",
+					tt.input, tok.Literal, tt.expectedLiteral)
+			}
+		}
+	})
 }

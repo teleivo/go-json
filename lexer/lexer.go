@@ -90,7 +90,7 @@ func (l *Lexer) readString() string {
 
 func (l *Lexer) readNumber() string {
 	pos := l.position
-	for isNumber(l.ch) {
+	for isNumber(l.ch) || l.ch == '.' || l.ch == '-' || l.ch == '+' || l.ch == 'e' || l.ch == 'E' {
 		l.readChar()
 	}
 	return l.input[pos:l.position]
@@ -103,5 +103,5 @@ func newToken(t token.TokenType, ch byte) token.Token {
 func isNumber(ch byte) bool {
 	// TODO its more complicated than that. find out all the valid numbers in
 	// JSON. https://www.json.org/json-en.html
-	return '0' <= ch && ch <= '9'
+	return '0' <= ch && ch <= '9' || ch == '-'
 }
