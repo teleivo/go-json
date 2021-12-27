@@ -118,16 +118,18 @@ func TestNextToken(t *testing.T) {
 		tests := []struct {
 			input           string
 			expectedLiteral string
+			description     string
 		}{
-			{"a200", "a"},
-			{"_200", "_"},
-			{"+200", "+"},
-			{"e200", "e"},
-			{"E200", "E"},
-			{".200", "."},
-			{"-.200", "-"},
-			{"+.200", "+"},
-			// {"0.e+100"},
+			{"a200", "a", "number should only contain digits"},
+			{"_200", "_", "number should only contain digits"},
+			{"+200", "+", "number cannot be prefixed with +"},
+			{"e200", "e", "exponent needs to be preceeded by digit"},
+			{"E200", "E", "exponent needs to be preceeded by digit"},
+			{".200", ".", "fraction needs to be preceeded by at least one digit"},
+			{"-.200", "-", "fraction needs to be preceeded by at least one digit"},
+			{"+.200", "+", "fraction needs to be preceeded by at least one digit"},
+			// {"1.", ".", "fraction needs to be followed by at least one digit"},
+			// {"0.e+100", ""},
 			// {"0.e-100"},
 			// {"0.e100"},
 			// {"0.E+100"},
