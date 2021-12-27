@@ -106,6 +106,12 @@ func (l *Lexer) readNumber() (string, error) {
 		if l.peekChar() == '.' && !isDigit(l.ch) {
 			return string(l.ch), errors.New("invalid number token: '.' needs to be preceded by a digit")
 		}
+		if l.ch == '.' && !isDigit(l.peekChar()) {
+			return string(l.peekChar()), errors.New("invalid number token: '.' needs to be followed by a digit")
+		}
+		if (l.peekChar() == '+' || l.peekChar() == '-') && (l.ch != 'e' && l.ch != 'E') {
+			return string(l.peekChar()), errors.New("invalid number token: '+' or '-' needs to be preceded by 'e' or 'E' for exponent")
+		}
 		l.readChar()
 	}
 	return l.input[pos:l.position], nil
