@@ -94,8 +94,6 @@ func TestNextToken(t *testing.T) {
 			{"-200.3E+12", "-200.3E+12"},
 			{"-200.3E-12", "-200.3E-12"},
 			{"0.31e100", "0.31e100"},
-			// TODO would the lexer already implement this "state machine"?
-			// there can only be one '.', one '-'
 		}
 
 		for _, tt := range tests {
