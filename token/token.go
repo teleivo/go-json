@@ -1,11 +1,13 @@
 package token
 
-// TODO true, false, null
+// TODO null
 
 const (
 	ILLEGAL = "ILLEGAL"
 	EOF     = "EOF"
 
+	TRUE   = "TRUE"
+	FALSE  = "FALSE"
 	STRING = "STRING"
 	NUMBER = "NUMBER"
 

@@ -71,6 +71,16 @@ func (l *Lexer) NextToken() token.Token {
 			}
 			return tok
 		}
+		if isTrue(l.ch) {
+			tok.Literal = l.readTrue()
+			tok.Type = token.TRUE
+			return tok
+		}
+		if isFalse(l.ch) {
+			tok.Literal = l.readFalse()
+			tok.Type = token.FALSE
+			return tok
+		}
 		tok = newToken(token.ILLEGAL, l.ch)
 	}
 
@@ -117,6 +127,28 @@ func (l *Lexer) readNumber() (string, error) {
 	return l.input[pos:l.position], nil
 }
 
+func (l *Lexer) readTrue() string {
+	// TODO handle errors, handle true not being followed by COMMA, handle
+	// whitespace
+	pos := l.position
+	for l.ch != ',' {
+		l.readChar()
+	}
+	t := l.input[pos:l.position]
+	return t
+}
+
+func (l *Lexer) readFalse() string {
+	// TODO handle errors, handle false not being followed by COMMA, handle
+	// whitespace
+	pos := l.position
+	for l.ch != ',' && l.ch != '}' {
+		l.readChar()
+	}
+	t := l.input[pos:l.position]
+	return t
+}
+
 func newToken(t token.TokenType, ch byte) token.Token {
 	return token.Token{Type: t, Literal: string(ch)}
 }
@@ -127,4 +159,12 @@ func isNumber(ch byte) bool {
 
 func isDigit(ch byte) bool {
 	return '0' <= ch && ch <= '9'
+}
+
+func isTrue(ch byte) bool {
+	return ch == 't'
+}
+
+func isFalse(ch byte) bool {
+	return ch == 'f'
 }

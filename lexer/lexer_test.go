@@ -8,7 +8,7 @@ import (
 
 func TestNextToken(t *testing.T) {
 	t.Run("LexCompleteJSON", func(t *testing.T) {
-		input := `{"cookies": 200, "ingredients": ["flour", "salt"]}`
+		input := `{"cookies": 200, "ingredients": ["flour", "salt"], "fresh": true, "tasty": false}`
 
 		tests := []struct {
 			expectedType    token.TokenType
@@ -26,6 +26,14 @@ func TestNextToken(t *testing.T) {
 			{token.COMMA, ","},
 			{token.STRING, "salt"},
 			{token.RBRACKET, "]"},
+			{token.COMMA, ","},
+			{token.STRING, "fresh"},
+			{token.COLON, ":"},
+			{token.TRUE, "true"},
+			{token.COMMA, ","},
+			{token.STRING, "tasty"},
+			{token.COLON, ":"},
+			{token.FALSE, "false"},
 			{token.RBRACE, "}"},
 			{token.EOF, ""},
 		}
