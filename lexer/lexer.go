@@ -104,7 +104,7 @@ func (l *Lexer) readNumber() (string, error) {
 	pos := l.position
 	for isNumber(l.ch) || l.ch == '.' || l.ch == '-' || l.ch == '+' || l.ch == 'e' || l.ch == 'E' {
 		if l.peekChar() == '.' && !isDigit(l.ch) {
-			return "", errors.New("invalid number: '.' needs to be preceded by a digit")
+			return string(l.ch), errors.New("invalid number token: '.' needs to be preceded by a digit")
 		}
 		l.readChar()
 	}
