@@ -123,6 +123,8 @@ func TestNextToken(t *testing.T) {
 			{"a200", "a", "number should only contain digits"},
 			{"_200", "_", "number should only contain digits"},
 			{"+200", "+", "number cannot be prefixed with +"},
+			{"2-00", "-", "- sign is only allowed in first position or after exponent"},
+			{"2+00", "+", "+ sign is only allowed after exponent"},
 			{"e200", "e", "exponent needs to be preceeded by digit"},
 			{"E200", "E", "exponent needs to be preceeded by digit"},
 			{".200", ".", "fraction needs to be preceeded by at least one digit"},
