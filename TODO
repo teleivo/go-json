@@ -1,5 +1,7 @@
 # TODO
 
+* refactor lexer, extract common parts of true/false/null lexing
+
 ## IDEAS
 
 * adapt lexer to use io.Reader and filename
