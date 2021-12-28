@@ -145,9 +145,8 @@ func (l *Lexer) readNumber() (string, error) {
 }
 
 func (l *Lexer) readTrue() (string, error) {
-	// TODO handle not being followed by COMMA
 	pos := l.position
-	for l.ch != 0 && l.ch != ',' && !isWhitespace(l.ch) {
+	for l.ch != 0 && l.ch != ',' && l.ch != '}' && !isWhitespace(l.ch) {
 		l.readChar()
 	}
 	t := l.input[pos:l.position]

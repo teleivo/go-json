@@ -172,12 +172,16 @@ func TestNextToken(t *testing.T) {
 			expectedToken   token.TokenType
 			description     string
 		}{
+			{`true,`, `true`, token.TRUE, "should lex true if followed by comma"},
+			{`true}`, `true`, token.TRUE, "should lex true if followed by right brace"},
 			{` true	 `, `true`, token.TRUE, "should ignore spaces and tabs"},
 			{` true
 				`, `true`, token.TRUE, "should ignore newlines"},
 			{` false	 `, `false`, token.FALSE, "should ignore spaces and tabs"},
 			{` false
 				`, `false`, token.FALSE, "should ignore newlines"},
+			{`false,`, `false`, token.FALSE, "should lex false if followed by comma"},
+			{`false}`, `false`, token.FALSE, "should lex false if followed by right brace"},
 		}
 
 		for _, tt := range tests {
