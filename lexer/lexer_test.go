@@ -165,4 +165,35 @@ func TestNextToken(t *testing.T) {
 			}
 		}
 	})
+	t.Run("LexTrueAndFalse", func(t *testing.T) {
+		tests := []struct {
+			input           string
+			expectedLiteral string
+			expectedToken   token.TokenType
+			description     string
+		}{
+			{` true	 `, `true`, token.TRUE, "should ignore spaces and tabs"},
+			{` true
+				`, `true`, token.TRUE, "should ignore newlines"},
+			{` false	 `, `false`, token.FALSE, "should ignore spaces and tabs"},
+			{` false
+				`, `false`, token.FALSE, "should ignore newlines"},
+		}
+
+		for _, tt := range tests {
+			l := New(tt.input)
+
+			tok := l.NextToken()
+
+			if tok.Type != tt.expectedToken {
+				t.Fatalf("input %s - token type wrong. got=%s, want=%s",
+					tt.input, tok.Type, tt.expectedToken)
+			}
+
+			if tok.Literal != tt.expectedLiteral {
+				t.Fatalf("input %s - token literal wrong. got=%s, want=%s",
+					tt.input, tok.Literal, tt.expectedLiteral)
+			}
+		}
+	})
 }

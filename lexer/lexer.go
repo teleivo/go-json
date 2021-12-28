@@ -89,9 +89,16 @@ func (l *Lexer) NextToken() token.Token {
 }
 
 func (l *Lexer) skipWhitespace() {
-	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\b' || l.ch == '\r' || l.ch == '\f' {
+	for isWhitespace(l.ch) {
 		l.readChar()
 	}
+}
+
+func isWhitespace(ch byte) bool {
+	if ch == ' ' || ch == '\t' || ch == '\n' || ch == '\b' || ch == '\r' || ch == '\f' {
+		return true
+	}
+	return false
 }
 
 func (l *Lexer) readString() string {
@@ -128,10 +135,9 @@ func (l *Lexer) readNumber() (string, error) {
 }
 
 func (l *Lexer) readTrue() string {
-	// TODO handle errors, handle true not being followed by COMMA, handle
-	// whitespace
+	// TODO handle errors, handle true not being followed by COMMA
 	pos := l.position
-	for l.ch != ',' {
+	for l.ch != ',' && !isWhitespace(l.ch) {
 		l.readChar()
 	}
 	t := l.input[pos:l.position]
@@ -139,10 +145,9 @@ func (l *Lexer) readTrue() string {
 }
 
 func (l *Lexer) readFalse() string {
-	// TODO handle errors, handle false not being followed by COMMA, handle
-	// whitespace
+	// TODO handle errors, handle false not being followed by COMMA
 	pos := l.position
-	for l.ch != ',' && l.ch != '}' {
+	for l.ch != ',' && l.ch != '}' && !isWhitespace(l.ch) {
 		l.readChar()
 	}
 	t := l.input[pos:l.position]
