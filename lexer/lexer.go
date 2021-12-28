@@ -72,13 +72,23 @@ func (l *Lexer) NextToken() token.Token {
 			return tok
 		}
 		if isTrue(l.ch) {
-			tok.Literal = l.readTrue()
-			tok.Type = token.TRUE
+			lit, err := l.readTrue()
+			tok.Literal = lit
+			if err != nil {
+				tok.Type = token.ILLEGAL
+			} else {
+				tok.Type = token.TRUE
+			}
 			return tok
 		}
 		if isFalse(l.ch) {
-			tok.Literal = l.readFalse()
-			tok.Type = token.FALSE
+			lit, err := l.readFalse()
+			tok.Literal = lit
+			if err != nil {
+				tok.Type = token.ILLEGAL
+			} else {
+				tok.Type = token.FALSE
+			}
 			return tok
 		}
 		tok = newToken(token.ILLEGAL, l.ch)
@@ -134,24 +144,29 @@ func (l *Lexer) readNumber() (string, error) {
 	return l.input[pos:l.position], nil
 }
 
-func (l *Lexer) readTrue() string {
-	// TODO handle errors, handle true not being followed by COMMA
+func (l *Lexer) readTrue() (string, error) {
+	// TODO handle not being followed by COMMA
 	pos := l.position
-	for l.ch != ',' && !isWhitespace(l.ch) {
+	for l.ch != 0 && l.ch != ',' && !isWhitespace(l.ch) {
 		l.readChar()
 	}
 	t := l.input[pos:l.position]
-	return t
+	if t != "true" {
+		return t, errors.New("invalid token true: expects 'true'")
+	}
+	return t, nil
 }
 
-func (l *Lexer) readFalse() string {
-	// TODO handle errors, handle false not being followed by COMMA
+func (l *Lexer) readFalse() (string, error) {
 	pos := l.position
-	for l.ch != ',' && l.ch != '}' && !isWhitespace(l.ch) {
+	for l.ch != 0 && l.ch != ',' && l.ch != '}' && !isWhitespace(l.ch) {
 		l.readChar()
 	}
 	t := l.input[pos:l.position]
-	return t
+	if t != "false" {
+		return t, errors.New("invalid token false: expects 'false'")
+	}
+	return t, nil
 }
 
 func newToken(t token.TokenType, ch byte) token.Token {
