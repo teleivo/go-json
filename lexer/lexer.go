@@ -2,6 +2,7 @@ package lexer
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/teleivo/go-template/token"
 )
@@ -11,6 +12,18 @@ type Lexer struct {
 	position     int  // current position in input (current char)
 	readPosition int  // current reading position (after current char)
 	ch           byte // current char under examination
+}
+
+var charToKeyword = map[byte]string{
+	't': "true",
+	'f': "false",
+	'n': "null",
+}
+
+var keywordToToken = map[string]token.TokenType{
+	"true":  token.TRUE,
+	"false": token.FALSE,
+	"null":  token.NULL,
 }
 
 func New(input string) *Lexer {
@@ -71,23 +84,13 @@ func (l *Lexer) NextToken() token.Token {
 			}
 			return tok
 		}
-		if isTrue(l.ch) {
-			lit, err := l.readTrue()
+		if isKeyword(l.ch) {
+			lit, err := l.readKeyword()
 			tok.Literal = lit
 			if err != nil {
 				tok.Type = token.ILLEGAL
 			} else {
-				tok.Type = token.TRUE
-			}
-			return tok
-		}
-		if isFalse(l.ch) {
-			lit, err := l.readFalse()
-			tok.Literal = lit
-			if err != nil {
-				tok.Type = token.ILLEGAL
-			} else {
-				tok.Type = token.FALSE
+				tok.Type = keywordToToken[lit]
 			}
 			return tok
 		}
@@ -144,28 +147,19 @@ func (l *Lexer) readNumber() (string, error) {
 	return l.input[pos:l.position], nil
 }
 
-func (l *Lexer) readTrue() (string, error) {
+func (l *Lexer) readKeyword() (string, error) {
+	k := charToKeyword[l.ch]
 	pos := l.position
 	for l.ch != 0 && l.ch != ',' && l.ch != '}' && !isWhitespace(l.ch) {
 		l.readChar()
+		if l.input[pos:l.position] != k[0:l.position-pos] {
+			return string(l.ch), fmt.Errorf("invalid token %q: expect %q", k, k)
+		}
 	}
-	t := l.input[pos:l.position]
-	if t != "true" {
-		return t, errors.New("invalid token true: expects 'true'")
+	if l.input[pos:l.position] != k {
+		return l.input[pos:l.position], fmt.Errorf("invalid token %q: expect %q", k, k)
 	}
-	return t, nil
-}
-
-func (l *Lexer) readFalse() (string, error) {
-	pos := l.position
-	for l.ch != 0 && l.ch != ',' && l.ch != '}' && !isWhitespace(l.ch) {
-		l.readChar()
-	}
-	t := l.input[pos:l.position]
-	if t != "false" {
-		return t, errors.New("invalid token false: expects 'false'")
-	}
-	return t, nil
+	return l.input[pos:l.position], nil
 }
 
 func newToken(t token.TokenType, ch byte) token.Token {
@@ -180,10 +174,7 @@ func isDigit(ch byte) bool {
 	return '0' <= ch && ch <= '9'
 }
 
-func isTrue(ch byte) bool {
-	return ch == 't'
-}
-
-func isFalse(ch byte) bool {
-	return ch == 'f'
+func isKeyword(ch byte) bool {
+	_, ok := charToKeyword[ch]
+	return ok
 }
