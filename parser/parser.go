@@ -42,7 +42,7 @@ func (p *Parser) parseElement() ast.Element {
 	switch p.curToken.Type {
 	case token.STRING:
 		return p.parseString()
-	case token.TRUE:
+	case token.TRUE, token.FALSE:
 		return p.parseBoolean()
 	default:
 		return nil
