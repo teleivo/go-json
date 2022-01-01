@@ -32,3 +32,14 @@ func (s *String) elementNode() {}
 func (s *String) TokenLiteral() string {
 	return s.Token.Literal
 }
+
+type Boolean struct {
+	Token token.Token // the token.TRUE or token.FALSE
+	Value bool
+}
+
+func (b *Boolean) elementNode() {}
+
+func (b *Boolean) TokenLiteral() string {
+	return b.Token.Literal
+}
