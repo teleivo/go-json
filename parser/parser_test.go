@@ -69,3 +69,29 @@ func TestBoolean(t *testing.T) {
 		})
 	}
 }
+
+func TestNull(t *testing.T) {
+	input := `null`
+
+	l := lexer.New(input)
+	p := New(l)
+
+	j := p.ParseJSON()
+
+	if j == nil {
+		t.Fatal("ParseJSON() returned nil")
+	}
+	if j.Element == nil {
+		t.Fatal("ParseJSON() returned JSON with no element")
+	}
+	if want := "null"; j.Element.TokenLiteral() != want {
+		t.Fatalf("got %q, want %q", j.Element.TokenLiteral(), want)
+	}
+	n, ok := j.Element.(*ast.Null)
+	if !ok {
+		t.Fatalf("j not *ast.Null. got=%T", j.Element)
+	}
+	if want := "null"; n.Value != want {
+		t.Fatalf("got %q, want %q", n.Value, want)
+	}
+}

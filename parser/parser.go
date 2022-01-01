@@ -44,6 +44,8 @@ func (p *Parser) parseElement() ast.Element {
 		return p.parseString()
 	case token.TRUE, token.FALSE:
 		return p.parseBoolean()
+	case token.NULL:
+		return p.parseNull()
 	default:
 		return nil
 	}
@@ -55,4 +57,8 @@ func (p *Parser) parseString() *ast.String {
 
 func (p *Parser) parseBoolean() *ast.Boolean {
 	return &ast.Boolean{Token: p.curToken, Value: p.curToken.Literal == "true"}
+}
+
+func (p *Parser) parseNull() *ast.Null {
+	return &ast.Null{Token: p.curToken, Value: p.curToken.Literal}
 }

@@ -43,3 +43,14 @@ func (b *Boolean) elementNode() {}
 func (b *Boolean) TokenLiteral() string {
 	return b.Token.Literal
 }
+
+type Null struct {
+	Token token.Token // the token.NULL token
+	Value string
+}
+
+func (n *Null) elementNode() {}
+
+func (n *Null) TokenLiteral() string {
+	return n.Token.Literal
+}
