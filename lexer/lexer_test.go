@@ -3,7 +3,7 @@ package lexer
 import (
 	"testing"
 
-	"github.com/teleivo/go-template/token"
+	"github.com/teleivo/go-json/token"
 )
 
 func TestNextToken(t *testing.T) {

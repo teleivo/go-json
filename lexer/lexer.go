@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/teleivo/go-template/token"
+	"github.com/teleivo/go-json/token"
 )
 
 type Lexer struct {

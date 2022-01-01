@@ -1,4 +1,4 @@
-module github.com/teleivo/go-template
+module github.com/teleivo/go-json
 
 go 1.17
 
