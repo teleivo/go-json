@@ -46,7 +46,6 @@ func (b *Boolean) TokenLiteral() string {
 
 type Null struct {
 	Token token.Token // the token.NULL token
-	Value string
 }
 
 func (n *Null) elementNode() {}

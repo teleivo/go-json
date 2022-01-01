@@ -87,11 +87,8 @@ func TestNull(t *testing.T) {
 	if want := "null"; j.Element.TokenLiteral() != want {
 		t.Fatalf("got %q, want %q", j.Element.TokenLiteral(), want)
 	}
-	n, ok := j.Element.(*ast.Null)
+	_, ok := j.Element.(*ast.Null)
 	if !ok {
 		t.Fatalf("j not *ast.Null. got=%T", j.Element)
-	}
-	if want := "null"; n.Value != want {
-		t.Fatalf("got %q, want %q", n.Value, want)
 	}
 }

@@ -60,5 +60,5 @@ func (p *Parser) parseBoolean() *ast.Boolean {
 }
 
 func (p *Parser) parseNull() *ast.Null {
-	return &ast.Null{Token: p.curToken, Value: p.curToken.Literal}
+	return &ast.Null{Token: p.curToken}
 }
