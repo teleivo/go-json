@@ -1,5 +1,9 @@
 # TODO
 
+* parse an array
+* parse a number
+* parse an object
+
 ## IDEAS
 
 * adapt lexer to use io.Reader and filename
