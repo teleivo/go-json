@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/teleivo/go-json/ast"
@@ -21,26 +22,35 @@ func TestString(t *testing.T) {
 	if j.Element == nil {
 		t.Fatal("ParseJSON() returned JSON with no element")
 	}
-	if want := "broccoli"; j.Element.TokenLiteral() != want {
-		t.Fatalf("got %q, want %q", j.Element.TokenLiteral(), want)
+	if !testString(t, j.Element, "broccoli") {
+		return
 	}
-	str, ok := j.Element.(*ast.String)
+}
+
+func testString(t *testing.T, el ast.Element, want string) bool {
+	if el.TokenLiteral() != want {
+		t.Errorf("got %q, want %q", el.TokenLiteral(), want)
+		return false
+	}
+	str, ok := el.(*ast.String)
 	if !ok {
-		t.Fatalf("j not *ast.String. got=%T", j.Element)
+		t.Errorf("str not *ast.String. got=%T", el)
+		return false
 	}
-	if want := "broccoli"; str.Value != want {
-		t.Fatalf("got %q, want %q", str.Value, want)
+	if str.Value != want {
+		t.Errorf("got %q, want %q", str.Value, want)
+		return false
 	}
+	return true
 }
 
 func TestBoolean(t *testing.T) {
 	test := []struct {
-		input       string
-		wantLiteral string
-		want        bool
+		input string
+		want  bool
 	}{
-		{`true`, "true", true},
-		{`false`, "false", false},
+		{`true`, true},
+		{`false`, false},
 	}
 
 	for _, tt := range test {
@@ -56,18 +66,28 @@ func TestBoolean(t *testing.T) {
 			if j.Element == nil {
 				t.Fatal("ParseJSON() returned JSON with no element")
 			}
-			if j.Element.TokenLiteral() != tt.wantLiteral {
-				t.Fatalf("got %q, want %q", j.Element.TokenLiteral(), tt.wantLiteral)
-			}
-			b, ok := j.Element.(*ast.Boolean)
-			if !ok {
-				t.Fatalf("j not *ast.Boolean. got=%T", j.Element)
-			}
-			if b.Value != tt.want {
-				t.Fatalf("got %t, want %t", b.Value, tt.want)
+			if !testBoolean(t, j.Element, tt.want) {
+				return
 			}
 		})
 	}
+}
+
+func testBoolean(t *testing.T, el ast.Element, want bool) bool {
+	if want := fmt.Sprintf("%t", want); el.TokenLiteral() != want {
+		t.Errorf("got %q, want %q", el.TokenLiteral(), want)
+		return false
+	}
+	b, ok := el.(*ast.Boolean)
+	if !ok {
+		t.Errorf("el not *ast.Boolean. got=%T", el)
+		return false
+	}
+	if b.Value != want {
+		t.Errorf("got %t, want %t", b.Value, want)
+		return false
+	}
+	return true
 }
 
 func TestNull(t *testing.T) {
@@ -84,11 +104,22 @@ func TestNull(t *testing.T) {
 	if j.Element == nil {
 		t.Fatal("ParseJSON() returned JSON with no element")
 	}
-	if want := "null"; j.Element.TokenLiteral() != want {
-		t.Fatalf("got %q, want %q", j.Element.TokenLiteral(), want)
+	if !testNull(t, j.Element) {
+		return
 	}
-	_, ok := j.Element.(*ast.Null)
+}
+
+func testNull(t *testing.T, el ast.Element) bool {
+	if want := "null"; el.TokenLiteral() != want {
+		t.Errorf("got %q, want %q", el.TokenLiteral(), want)
+		return false
+	}
+	_, ok := el.(*ast.Null)
 	if !ok {
-		t.Fatalf("j not *ast.Null. got=%T", j.Element)
+		t.Errorf("j not *ast.Null. got=%T", el)
+		return false
+	}
+	return true
+}
 	}
 }
