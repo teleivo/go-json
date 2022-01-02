@@ -53,3 +53,14 @@ func (n *Null) elementNode() {}
 func (n *Null) TokenLiteral() string {
 	return n.Token.Literal
 }
+
+type Array struct {
+	Token    token.Token // the token.LBRACKET
+	Elements []Element
+}
+
+func (a *Array) elementNode() {}
+
+func (a *Array) TokenLiteral() string {
+	return a.Token.Literal
+}

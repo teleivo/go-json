@@ -121,5 +121,57 @@ func testNull(t *testing.T, el ast.Element) bool {
 	}
 	return true
 }
+
+func TestArray(t *testing.T) {
+	input := `[  "fantastic", true, null, "carrot"]`
+
+	l := lexer.New(input)
+	p := New(l)
+
+	j := p.ParseJSON()
+
+	if j == nil {
+		t.Fatal("ParseJSON() returned nil")
+	}
+	if j.Element == nil {
+		t.Fatal("ParseJSON() returned JSON with no element")
+	}
+	ar, ok := j.Element.(*ast.Array)
+	if !ok {
+		t.Fatalf("j.Element not *ast.Array. got=%T", j.Element)
+	}
+
+	tests := []struct {
+		test func(t *testing.T, el ast.Element) bool
+	}{
+		{
+			func(t *testing.T, el ast.Element) bool {
+				return testString(t, el, "fantastic")
+			},
+		},
+		{
+			func(t *testing.T, el ast.Element) bool {
+				return testBoolean(t, el, true)
+			},
+		},
+		{
+			func(t *testing.T, el ast.Element) bool {
+				return testNull(t, el)
+			},
+		},
+		{
+			func(t *testing.T, el ast.Element) bool {
+				return testString(t, el, "carrot")
+			},
+		},
+	}
+
+	for i, tt := range tests {
+		if i >= len(ar.Elements) {
+			t.Fatalf("no element is left in array. got %d, want %d elements.", len(ar.Elements), len(tests))
+		}
+		if !tt.test(t, ar.Elements[i]) {
+			return
+		}
 	}
 }

@@ -46,6 +46,8 @@ func (p *Parser) parseElement() ast.Element {
 		return p.parseBoolean()
 	case token.NULL:
 		return p.parseNull()
+	case token.LBRACKET:
+		return p.parseArray()
 	default:
 		return nil
 	}
@@ -61,4 +63,18 @@ func (p *Parser) parseBoolean() *ast.Boolean {
 
 func (p *Parser) parseNull() *ast.Null {
 	return &ast.Null{Token: p.curToken}
+}
+
+func (p *Parser) parseArray() *ast.Array {
+	ar := &ast.Array{Token: p.curToken, Elements: make([]ast.Element, 0)}
+
+	p.nextToken()
+	for p.curToken.Type != token.RBRACKET && p.curToken.Type != token.EOF {
+		el := p.parseElement()
+		ar.Elements = append(ar.Elements, el)
+		// TODO handle errors with missing comma, missing element after comma
+		p.nextToken() // skip comma
+		p.nextToken() // move onto next element
+	}
+	return ar
 }
