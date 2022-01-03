@@ -30,12 +30,16 @@ func (p *Parser) nextToken() {
 func (p *Parser) ParseJSON() *ast.JSON {
 	j := &ast.JSON{}
 
-	for p.curToken.Type != token.EOF {
+	for !p.curTokenIs(token.EOF) {
 		el := p.parseElement()
 		j.Element = el
 		p.nextToken()
 	}
 	return j
+}
+
+func (p *Parser) curTokenIs(t token.TokenType) bool {
+	return p.curToken.Type == t
 }
 
 func (p *Parser) parseElement() ast.Element {
@@ -69,7 +73,7 @@ func (p *Parser) parseArray() *ast.Array {
 	ar := &ast.Array{Token: p.curToken, Elements: make([]ast.Element, 0)}
 
 	p.nextToken()
-	for p.curToken.Type != token.RBRACKET && p.curToken.Type != token.EOF {
+	for !p.curTokenIs(token.RBRACKET) && !p.curTokenIs(token.EOF) {
 		el := p.parseElement()
 		ar.Elements = append(ar.Elements, el)
 		// TODO handle errors with missing comma, missing element after comma
