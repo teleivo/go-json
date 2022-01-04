@@ -16,7 +16,7 @@ const (
 	LBRACE   = "{"
 	RBRACE   = "}"
 	LBRACKET = "["
-	RBRACKET = "["
+	RBRACKET = "]"
 )
 
 type TokenType string
