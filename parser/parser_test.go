@@ -6,6 +6,7 @@ import (
 
 	"github.com/teleivo/go-json/ast"
 	"github.com/teleivo/go-json/lexer"
+	"github.com/teleivo/go-json/token"
 )
 
 func TestString(t *testing.T) {
@@ -15,6 +16,8 @@ func TestString(t *testing.T) {
 	p := New(l)
 
 	j := p.ParseJSON()
+
+	checkParserErrors(t, p)
 
 	if j == nil {
 		t.Fatal("ParseJSON() returned nil")
@@ -60,6 +63,8 @@ func TestBoolean(t *testing.T) {
 
 			j := p.ParseJSON()
 
+			checkParserErrors(t, p)
+
 			if j == nil {
 				t.Fatal("ParseJSON() returned nil")
 			}
@@ -98,6 +103,8 @@ func TestNull(t *testing.T) {
 
 	j := p.ParseJSON()
 
+	checkParserErrors(t, p)
+
 	if j == nil {
 		t.Fatal("ParseJSON() returned nil")
 	}
@@ -123,55 +130,90 @@ func testNull(t *testing.T, el ast.Element) bool {
 }
 
 func TestArray(t *testing.T) {
-	input := `[  "fantastic", true, null, "carrot"]`
+	t.Run("ParseValidArray", func(t *testing.T) {
+		input := `[  "fantastic", true, null, "carrot"]`
 
-	l := lexer.New(input)
-	p := New(l)
+		l := lexer.New(input)
+		p := New(l)
 
-	j := p.ParseJSON()
+		j := p.ParseJSON()
 
-	if j == nil {
-		t.Fatal("ParseJSON() returned nil")
-	}
-	if j.Element == nil {
-		t.Fatal("ParseJSON() returned JSON with no element")
-	}
-	ar, ok := j.Element.(*ast.Array)
-	if !ok {
-		t.Fatalf("j.Element not *ast.Array. got=%T", j.Element)
-	}
+		checkParserErrors(t, p)
 
-	tests := []struct {
-		test func(t *testing.T, el ast.Element) bool
-	}{
-		{
-			func(t *testing.T, el ast.Element) bool {
-				return testString(t, el, "fantastic")
-			},
-		},
-		{
-			func(t *testing.T, el ast.Element) bool {
-				return testBoolean(t, el, true)
-			},
-		},
-		{
-			func(t *testing.T, el ast.Element) bool {
-				return testNull(t, el)
-			},
-		},
-		{
-			func(t *testing.T, el ast.Element) bool {
-				return testString(t, el, "carrot")
-			},
-		},
-	}
-
-	for i, tt := range tests {
-		if i >= len(ar.Elements) {
-			t.Fatalf("no element is left in array. got %d, want %d elements.", len(ar.Elements), len(tests))
+		if j == nil {
+			t.Fatal("ParseJSON() returned nil")
 		}
-		if !tt.test(t, ar.Elements[i]) {
-			return
+		if j.Element == nil {
+			t.Fatal("ParseJSON() returned JSON with no element")
 		}
+		ar, ok := j.Element.(*ast.Array)
+		if !ok {
+			t.Fatalf("j.Element not *ast.Array. got=%T", j.Element)
+		}
+
+		tests := []struct {
+			test func(t *testing.T, el ast.Element) bool
+		}{
+			{
+				func(t *testing.T, el ast.Element) bool {
+					return testString(t, el, "fantastic")
+				},
+			},
+			{
+				func(t *testing.T, el ast.Element) bool {
+					return testBoolean(t, el, true)
+				},
+			},
+			{
+				func(t *testing.T, el ast.Element) bool {
+					return testNull(t, el)
+				},
+			},
+			{
+				func(t *testing.T, el ast.Element) bool {
+					return testString(t, el, "carrot")
+				},
+			},
+		}
+
+		for i, tt := range tests {
+			if i >= len(ar.Elements) {
+				t.Fatalf("no element is left in array. got %d, want %d elements.", len(ar.Elements), len(tests))
+			}
+			if !tt.test(t, ar.Elements[i]) {
+				return
+			}
+		}
+	})
+	t.Run("ParseInvalidArray", func(t *testing.T) {
+		input := `[  "fantastic",]`
+
+		l := lexer.New(input)
+		p := New(l)
+
+		p.ParseJSON()
+
+		errors := p.Errors()
+		if want := 1; len(errors) != want {
+			t.Fatalf("got %d errors but want %d", len(errors), want)
+		}
+		// TODO adapt error handling. I do not want to assert on the error
+		// message
+		if want := fmt.Sprintf("expected next token to be one of '%s', got '%s' instead", []token.TokenType{token.TRUE, token.FALSE, token.NULL, token.NUMBER, token.STRING}, token.RBRACKET); errors[0] != want {
+			t.Errorf("got %q, want %q", errors[0], want)
+		}
+	})
+}
+
+func checkParserErrors(t *testing.T, p *Parser) {
+	errors := p.Errors()
+	if len(errors) == 0 {
+		return
 	}
+
+	t.Errorf("parser has %d errors.", len(errors))
+	for _, msg := range errors {
+		t.Errorf("parser error: %q", msg)
+	}
+	t.FailNow()
 }
