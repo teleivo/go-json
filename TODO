@@ -1,6 +1,7 @@
 # TODO
 
 * parse an array
+* add String() string to ast Node interface
 * parse a number
 * parse an object
 
