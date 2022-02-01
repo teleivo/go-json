@@ -130,27 +130,23 @@ func testNull(t *testing.T, el ast.Element) bool {
 }
 
 func TestArray(t *testing.T) {
-	type astAssert func(t *testing.T, el ast.Element) bool
 	test := []struct {
+		desc  string
 		input string
-		ast   []astAssert
+		ast   []astAssertion
 	}{
-		{input: `[  ]`},
 		{
+			desc:  "Empty",
+			input: `[  ]`,
+		},
+		{
+			desc:  "Simple",
 			input: `[  "fantastic", true, null, "carrot"]`,
-			ast: []astAssert{
-				func(t *testing.T, el ast.Element) bool {
-					return testString(t, el, "fantastic")
-				},
-				func(t *testing.T, el ast.Element) bool {
-					return testBoolean(t, el, true)
-				},
-				func(t *testing.T, el ast.Element) bool {
-					return testNull(t, el)
-				},
-				func(t *testing.T, el ast.Element) bool {
-					return testString(t, el, "carrot")
-				},
+			ast: []astAssertion{
+				assertString("fantastic"),
+				assertBoolean(true),
+				assertNull(),
+				assertString("carrot"),
 			},
 		},
 	}
@@ -216,4 +212,24 @@ func checkParserErrors(t *testing.T, p *Parser) {
 		t.Errorf("parser error: %q", msg)
 	}
 	t.FailNow()
+}
+
+type astAssertion func(t *testing.T, el ast.Element) bool
+
+func assertNull() astAssertion {
+	return func(t *testing.T, el ast.Element) bool {
+		return testNull(t, el)
+	}
+}
+
+func assertBoolean(want bool) astAssertion {
+	return func(t *testing.T, el ast.Element) bool {
+		return testBoolean(t, el, want)
+	}
+}
+
+func assertString(want string) astAssertion {
+	return func(t *testing.T, el ast.Element) bool {
+		return testString(t, el, want)
+	}
 }
