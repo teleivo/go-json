@@ -232,6 +232,38 @@ func TestArray(t *testing.T) {
 	}
 }
 
+func TestParseError(t *testing.T) {
+	test := []struct {
+		desc  string
+		input ParseError
+		want  string
+	}{
+		{
+			desc: "ExpectsSingleToken",
+			input: ParseError{
+				Actual:   token.Token{Type: token.LBRACE, Literal: token.LBRACE},
+				Expected: []token.TokenType{token.COLON},
+			},
+			want: "expected token : got { instead",
+		},
+		{
+			desc: "ExpectsMultipleTokens",
+			input: ParseError{
+				Actual:   token.Token{Type: token.LBRACE, Literal: token.LBRACE},
+				Expected: []token.TokenType{token.COLON, token.FALSE},
+			},
+			want: "expected one of tokens :, FALSE got { instead",
+		},
+	}
+	for _, tt := range test {
+		t.Run(tt.desc, func(t *testing.T) {
+			if diff := cmp.Diff(tt.want, tt.input.Error()); diff != "" {
+				t.Errorf("ParseError() mismatch (-want +got): %s\n", diff)
+			}
+		})
+	}
+}
+
 func checkParserErrors(t *testing.T, p *Parser) {
 	errors := p.Errors()
 	if len(errors) == 0 {

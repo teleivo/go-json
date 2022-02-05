@@ -129,16 +129,18 @@ func (pe *ParseError) Error() string {
 	var sb strings.Builder
 	sb.WriteString("expected")
 	if len(pe.Expected) > 1 {
-		sb.WriteString(" one of ")
-		for _, t := range pe.Expected {
+		sb.WriteString(" one of tokens ")
+		for i, t := range pe.Expected {
+			if i != 0 {
+				sb.WriteString(", ")
+			}
 			sb.WriteString(string(t))
-			sb.WriteString(", ")
 		}
 	} else if len(pe.Expected) == 1 {
 		sb.WriteString(" token ")
 		sb.WriteString(string(pe.Expected[0]))
 	}
-	sb.WriteString(", got ")
+	sb.WriteString(" got ")
 	sb.WriteString(pe.Actual.Literal)
 	sb.WriteString(" instead")
 	return sb.String()
