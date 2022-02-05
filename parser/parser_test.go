@@ -189,6 +189,11 @@ func TestArray(t *testing.T) {
 		expected []token.TokenType
 	}{
 		{
+			input:    `[ `,
+			actual:   token.EOF,
+			expected: []token.TokenType{token.FALSE, token.TRUE, token.NULL, token.NUMBER, token.STRING, token.RBRACKET},
+		},
+		{
 			input:    `[  "fantastic",]`,
 			actual:   token.RBRACKET,
 			expected: []token.TokenType{token.FALSE, token.TRUE, token.NULL, token.NUMBER, token.STRING},
@@ -213,20 +218,20 @@ func TestArray(t *testing.T) {
 
 			errs := p.Errors()
 			if want := 1; len(errs) != want {
-				t.Fatalf("got %d errors but want %d", len(errs), want)
+				t.Fatalf("ParseJSON(%q): got %d errors but want %d", tt.input, len(errs), want)
 			}
 			err, ok := errs[0].(*ParseError)
 			if !ok {
-				t.Fatalf("err not *ParseError got=%T", errs[0])
+				t.Fatalf("ParseJSON(%q): err not *ParseError got=%T", tt.input, errs[0])
 			}
 			if want := tt.actual; string(err.Actual.Type) != want {
-				t.Fatalf("got err.Actual %q, expected %q", err.Actual.Type, want)
+				t.Fatalf("ParseJSON(%q): got err.Actual %q, expected %q", tt.input, err.Actual.Type, want)
 			}
 			opt := cmpopts.SortSlices(func(a, b token.TokenType) bool {
 				return a < b
 			})
 			if diff := cmp.Diff(tt.expected, err.Expected, opt); diff != "" {
-				t.Errorf("err.Expected mismatch (-want, +got): %s\n", diff)
+				t.Errorf("ParseJSON(%q): err.Expected mismatch (-want, +got): %s\n", tt.input, diff)
 			}
 		})
 	}

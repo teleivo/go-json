@@ -87,8 +87,9 @@ func (p *Parser) parseNull() *ast.Null {
 func (p *Parser) parseArray() *ast.Array {
 	ar := &ast.Array{Token: p.curToken, Elements: make([]ast.Element, 0)}
 
-	// TODO peekToken should either be RBRACKET or an element
-	p.nextToken()
+	if !p.expectPeek(token.RBRACKET, token.TRUE, token.FALSE, token.NULL, token.NUMBER, token.STRING) {
+		return nil
+	}
 	for !p.curTokenIs(token.RBRACKET) && !p.curTokenIs(token.EOF) {
 		el := p.parseElement()
 		ar.Elements = append(ar.Elements, el)
