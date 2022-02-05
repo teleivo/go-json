@@ -162,19 +162,19 @@ func TestArray(t *testing.T) {
 			checkParserErrors(t, p)
 
 			if j == nil {
-				t.Fatal("ParseJSON() returned nil")
+				t.Fatalf("ParseJSON(%q): returned nil", tt.input)
 			}
 			if j.Element == nil {
-				t.Fatal("ParseJSON() returned JSON with no element")
+				t.Fatalf("ParseJSON(%q): returned JSON with no element", tt.input)
 			}
 			ar, ok := j.Element.(*ast.Array)
 			if !ok {
-				t.Fatalf("j.Element not *ast.Array. got=%T", j.Element)
+				t.Fatalf("ParseJSON(%q): j.Element not *ast.Array. got=%T", tt.input, j.Element)
 			}
 
 			for i, at := range tt.ast {
 				if i >= len(ar.Elements) {
-					t.Fatalf("no element is left in array. got %d, want %d elements.", len(ar.Elements), len(tt.ast))
+					t.Fatalf("ParseJSON(%q): no element is left in array. got %d, want %d elements.", tt.input, len(ar.Elements), len(tt.ast))
 				}
 				if !at(t, ar.Elements[i]) {
 					return
