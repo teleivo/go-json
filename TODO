@@ -1,7 +1,10 @@
 # TODO
 
 * parse an array
+  * parse a nested array (how to adapt the tests?)
+  * add more tests/logic for invalid arrays
 * add String() string to ast Node interface
+* make a proper error type instead of a string
 * parse a number
 * parse an object
 
@@ -12,3 +15,5 @@
 * write a CLI that takes a JSON from stdin to parse it
 * support unicode
 * try out fuzzing for testing
+* use the parser to write a JSON stats CLI. How many arrays, objects are in the
+JSON? How deeply nested is the JSON? How many nodes per type?
