@@ -22,10 +22,10 @@ func TestString(t *testing.T) {
 	checkParserErrors(t, p)
 
 	if j == nil {
-		t.Fatal("ParseJSON() returned nil")
+		fatal(t, "returned nil", input)
 	}
 	if j.Element == nil {
-		t.Fatal("ParseJSON() returned JSON with no element")
+		fatal(t, "returned with no element", input)
 	}
 	if !testString(t, j.Element, "broccoli") {
 		return
@@ -68,10 +68,10 @@ func TestBoolean(t *testing.T) {
 			checkParserErrors(t, p)
 
 			if j == nil {
-				t.Fatal("ParseJSON() returned nil")
+				fatal(t, "returned nil", tt.input)
 			}
 			if j.Element == nil {
-				t.Fatal("ParseJSON() returned JSON with no element")
+				fatal(t, "returned with no element", tt.input)
 			}
 			if !testBoolean(t, j.Element, tt.want) {
 				return
@@ -108,10 +108,10 @@ func TestNull(t *testing.T) {
 	checkParserErrors(t, p)
 
 	if j == nil {
-		t.Fatal("ParseJSON() returned nil")
+		fatal(t, "returned nil", input)
 	}
 	if j.Element == nil {
-		t.Fatal("ParseJSON() returned JSON with no element")
+		fatal(t, "returned with no element", input)
 	}
 	if !testNull(t, j.Element) {
 		return
@@ -162,19 +162,19 @@ func TestArray(t *testing.T) {
 			checkParserErrors(t, p)
 
 			if j == nil {
-				t.Fatalf("ParseJSON(%q): returned nil", tt.input)
+				fatalf(t, "returned nil", tt.input)
 			}
 			if j.Element == nil {
-				t.Fatalf("ParseJSON(%q): returned JSON with no element", tt.input)
+				fatalf(t, "returned JSON with no element", tt.input)
 			}
 			ar, ok := j.Element.(*ast.Array)
 			if !ok {
-				t.Fatalf("ParseJSON(%q): j.Element not *ast.Array. got=%T", tt.input, j.Element)
+				fatalf(t, "j.Element not *ast.Array. got=%T", tt.input, j.Element)
 			}
 
 			for i, at := range tt.ast {
 				if i >= len(ar.Elements) {
-					t.Fatalf("ParseJSON(%q): no element is left in array. got %d, want %d elements.", tt.input, len(ar.Elements), len(tt.ast))
+					fatalf(t, "no element is left in array. got %d, want %d elements.", tt.input, len(ar.Elements), len(tt.ast))
 				}
 				if !at(t, ar.Elements[i]) {
 					return
@@ -218,20 +218,20 @@ func TestArray(t *testing.T) {
 
 			errs := p.Errors()
 			if want := 1; len(errs) != want {
-				t.Fatalf("ParseJSON(%q): got %d errors but want %d", tt.input, len(errs), want)
+				fatalf(t, "got %d errors but want %d", tt.input, len(errs), want)
 			}
 			err, ok := errs[0].(*ParseError)
 			if !ok {
-				t.Fatalf("ParseJSON(%q): err not *ParseError got=%T", tt.input, errs[0])
+				fatalf(t, "err not *ParseError got=%T", tt.input, errs[0])
 			}
 			if want := tt.actual; string(err.Actual.Type) != want {
-				t.Fatalf("ParseJSON(%q): got err.Actual %q, expected %q", tt.input, err.Actual.Type, want)
+				fatalf(t, "got err.Actual %q, expected %q", tt.input, err.Actual.Type, want)
 			}
 			opt := cmpopts.SortSlices(func(a, b token.TokenType) bool {
 				return a < b
 			})
 			if diff := cmp.Diff(tt.expected, err.Expected, opt); diff != "" {
-				t.Errorf("ParseJSON(%q): err.Expected mismatch (-want, +got): %s\n", tt.input, diff)
+				errorf(t, "err.Expected mismatch (-want, +got): %s\n", tt.input, diff)
 			}
 		})
 	}
@@ -263,10 +263,22 @@ func TestParseError(t *testing.T) {
 	for _, tt := range test {
 		t.Run(tt.desc, func(t *testing.T) {
 			if diff := cmp.Diff(tt.want, tt.input.Error()); diff != "" {
-				t.Errorf("ParseError() mismatch (-want +got): %s\n", diff)
+				t.Errorf("ParseError.String() mismatch (-want +got): %s\n", diff)
 			}
 		})
 	}
+}
+
+func errorf(t *testing.T, in, format string, args ...interface{}) {
+	t.Fatal(fmt.Sprintf("ParseJSON(%q): ", in) + fmt.Sprintf(format, args...))
+}
+
+func fatal(t *testing.T, msg, in string) {
+	fatalf(t, in, "")
+}
+
+func fatalf(t *testing.T, in, format string, args ...interface{}) {
+	t.Fatal(fmt.Sprintf("ParseJSON(%q): ", in) + fmt.Sprintf(format, args...))
 }
 
 func checkParserErrors(t *testing.T, p *Parser) {
