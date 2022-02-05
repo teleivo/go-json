@@ -4,6 +4,7 @@
   * parse a nested array (how to adapt the tests?)
   * add more tests/logic for invalid arrays
 * add String() string to ast Node interface
+* would TokenType also benefit from a String(), printing all caps TRUE, FALSE, ... in errors is not friendly :)
 * make a proper error type instead of a string
 * parse a number
 * parse an object
