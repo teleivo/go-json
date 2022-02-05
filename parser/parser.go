@@ -87,6 +87,7 @@ func (p *Parser) parseNull() *ast.Null {
 func (p *Parser) parseArray() *ast.Array {
 	ar := &ast.Array{Token: p.curToken, Elements: make([]ast.Element, 0)}
 
+	// array should either be closed or contain an element
 	if !p.expectPeek(token.RBRACKET, token.TRUE, token.FALSE, token.NULL, token.NUMBER, token.STRING) {
 		return nil
 	}
