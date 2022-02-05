@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"fmt"
+	"strings"
 
 	"github.com/teleivo/go-json/ast"
 	"github.com/teleivo/go-json/lexer"
@@ -12,11 +12,11 @@ type Parser struct {
 	l         *lexer.Lexer
 	curToken  token.Token
 	peekToken token.Token
-	errors    []string
+	errors    []error
 }
 
 func New(l *lexer.Lexer) *Parser {
-	p := &Parser{l: l, errors: []string{}}
+	p := &Parser{l: l, errors: []error{}}
 
 	// read two tokens, so curToken and peekToken are both set
 	p.nextToken()
@@ -30,7 +30,7 @@ func (p *Parser) nextToken() {
 	p.peekToken = p.l.NextToken()
 }
 
-func (p *Parser) Errors() []string {
+func (p *Parser) Errors() []error {
 	return p.errors
 }
 
@@ -54,13 +54,7 @@ func (p *Parser) peekTokenIs(t token.TokenType) bool {
 }
 
 func (p *Parser) peekError(tt ...token.TokenType) {
-	var msg string
-	if len(tt) == 1 {
-		msg = fmt.Sprintf("expected next token to be '%s', got '%s' instead", tt[0], p.peekToken.Type)
-	} else {
-		msg = fmt.Sprintf("expected next token to be one of '%s', got '%s' instead", tt, p.peekToken.Type)
-	}
-	p.errors = append(p.errors, msg)
+	p.errors = append(p.errors, &ParseError{Expected: tt, Actual: p.peekToken})
 }
 
 func (p *Parser) parseElement() ast.Element {
@@ -124,4 +118,28 @@ func (p *Parser) expectPeek(tt ...token.TokenType) bool {
 	}
 	p.peekError(tt...)
 	return false
+}
+
+type ParseError struct {
+	Expected []token.TokenType
+	Actual   token.Token
+}
+
+func (pe *ParseError) Error() string {
+	var sb strings.Builder
+	sb.WriteString("expected")
+	if len(pe.Expected) > 1 {
+		sb.WriteString(" one of ")
+		for _, t := range pe.Expected {
+			sb.WriteString(string(t))
+			sb.WriteString(", ")
+		}
+	} else if len(pe.Expected) == 1 {
+		sb.WriteString(" token ")
+		sb.WriteString(string(pe.Expected[0]))
+	}
+	sb.WriteString(", got ")
+	sb.WriteString(pe.Actual.Literal)
+	sb.WriteString(" instead")
+	return sb.String()
 }

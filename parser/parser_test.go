@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/teleivo/go-json/ast"
 	"github.com/teleivo/go-json/lexer"
 	"github.com/teleivo/go-json/token"
@@ -130,7 +132,7 @@ func testNull(t *testing.T, el ast.Element) bool {
 }
 
 func TestArray(t *testing.T) {
-	test := []struct {
+	vt := []struct {
 		desc  string
 		input string
 		ast   []astAssertion
@@ -150,8 +152,7 @@ func TestArray(t *testing.T) {
 			},
 		},
 	}
-
-	for _, tt := range test {
+	for _, tt := range vt {
 		t.Run("ParseValidArray"+tt.desc, func(t *testing.T) {
 			l := lexer.New(tt.input)
 			p := New(l)
@@ -181,24 +182,54 @@ func TestArray(t *testing.T) {
 			}
 		})
 	}
-	t.Run("ParseInvalidArray", func(t *testing.T) {
-		input := `[  "fantastic",]`
 
-		l := lexer.New(input)
-		p := New(l)
+	ivt := []struct {
+		input    string
+		actual   string
+		expected []token.TokenType
+	}{
+		{
+			input:    `[  "fantastic",]`,
+			actual:   token.RBRACKET,
+			expected: []token.TokenType{token.FALSE, token.TRUE, token.NULL, token.NUMBER, token.STRING},
+		},
+		{
+			input:    `[  "fantastic",`,
+			actual:   token.EOF,
+			expected: []token.TokenType{token.FALSE, token.TRUE, token.NULL, token.NUMBER, token.STRING},
+		},
+		{
+			input:    `[  "fantastic"`,
+			actual:   token.EOF,
+			expected: []token.TokenType{token.COMMA, token.RBRACKET},
+		},
+	}
+	for _, tt := range ivt {
+		t.Run("ParseInvalidArray", func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l)
 
-		p.ParseJSON()
+			p.ParseJSON()
 
-		errors := p.Errors()
-		if want := 1; len(errors) != want {
-			t.Fatalf("got %d errors but want %d", len(errors), want)
-		}
-		// TODO adapt error handling. I do not want to assert on the error
-		// message
-		if want := fmt.Sprintf("expected next token to be one of '%s', got '%s' instead", []token.TokenType{token.TRUE, token.FALSE, token.NULL, token.NUMBER, token.STRING}, token.RBRACKET); errors[0] != want {
-			t.Errorf("got %q, want %q", errors[0], want)
-		}
-	})
+			errs := p.Errors()
+			if want := 1; len(errs) != want {
+				t.Fatalf("got %d errors but want %d", len(errs), want)
+			}
+			err, ok := errs[0].(*ParseError)
+			if !ok {
+				t.Fatalf("err not *ParseError got=%T", errs[0])
+			}
+			if want := tt.actual; string(err.Actual.Type) != want {
+				t.Fatalf("got err.Actual %q, expected %q", err.Actual.Type, want)
+			}
+			opt := cmpopts.SortSlices(func(a, b token.TokenType) bool {
+				return a < b
+			})
+			if diff := cmp.Diff(tt.expected, err.Expected, opt); diff != "" {
+				t.Errorf("err.Expected mismatch (-want, +got): %s\n", diff)
+			}
+		})
+	}
 }
 
 func checkParserErrors(t *testing.T, p *Parser) {
@@ -208,8 +239,8 @@ func checkParserErrors(t *testing.T, p *Parser) {
 	}
 
 	t.Errorf("parser has %d errors.", len(errors))
-	for _, msg := range errors {
-		t.Errorf("parser error: %q", msg)
+	for _, err := range errors {
+		t.Errorf("parser error: %q", err)
 	}
 	t.FailNow()
 }
