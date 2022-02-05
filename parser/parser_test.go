@@ -152,7 +152,7 @@ func TestArray(t *testing.T) {
 	}
 
 	for _, tt := range test {
-		t.Run("ParseValidArray", func(t *testing.T) {
+		t.Run("ParseValidArray"+tt.desc, func(t *testing.T) {
 			l := lexer.New(tt.input)
 			p := New(l)
 
