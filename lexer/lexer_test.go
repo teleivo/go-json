@@ -173,7 +173,13 @@ func TestNextToken(t *testing.T) {
 			description     string
 		}{
 			{`true,`, `true`, token.TRUE, "should lex true if followed by comma"},
+			{`true;`, `true`, token.TRUE, "should lex true if followed by semicolon"},
+			{`true'`, `true`, token.TRUE, "should lex true if followed by single-quote"},
+			{`true"`, `true`, token.TRUE, "should lex true if followed by double-quote"},
+			{`true{`, `true`, token.TRUE, "should lex true if followed by left brace"},
+			{`true[`, `true`, token.TRUE, "should lex true if followed by left bracket"},
 			{`true}`, `true`, token.TRUE, "should lex true if followed by right brace"},
+			{`true]`, `true`, token.TRUE, "should lex true if followed by right bracket"},
 			{` true	 `, `true`, token.TRUE, "should ignore spaces and tabs"},
 			{` true
 				`, `true`, token.TRUE, "should ignore newlines"},
@@ -181,7 +187,13 @@ func TestNextToken(t *testing.T) {
 			{` false
 				`, `false`, token.FALSE, "should ignore newlines"},
 			{`false,`, `false`, token.FALSE, "should lex false if followed by comma"},
+			{`false;`, `false`, token.FALSE, "should lex false if followed by semicolon"},
+			{`false'`, `false`, token.FALSE, "should lex false if followed by single-quote"},
+			{`false"`, `false`, token.FALSE, "should lex false if followed by double-quote"},
+			{`false{`, `false`, token.FALSE, "should lex false if followed by left brace"},
+			{`false[`, `false`, token.FALSE, "should lex false if followed by left bracket"},
 			{`false}`, `false`, token.FALSE, "should lex false if followed by right brace"},
+			{`false]`, `false`, token.FALSE, "should lex false if followed by right bracket"},
 		}
 
 		for _, tt := range tests {
@@ -239,6 +251,12 @@ func TestNextToken(t *testing.T) {
 			description     string
 		}{
 			{`null,`, `null`, token.NULL, "should lex null if followed by comma"},
+			{`null;`, `null`, token.NULL, "should lex null if followed by semicolon"},
+			{`null'`, `null`, token.NULL, "should lex null if followed by single-quote"},
+			{`null"`, `null`, token.NULL, "should lex null if followed by double-quote"},
+			{`null[`, `null`, token.NULL, "should lex null if followed by right bracket"},
+			{`null{`, `null`, token.NULL, "should lex null if followed by right brace"},
+			{`null]`, `null`, token.NULL, "should lex null if followed by right bracket"},
 			{`null}`, `null`, token.NULL, "should lex null if followed by right brace"},
 			{` null	 `, `null`, token.NULL, "should ignore spaces and tabs"},
 			{` null

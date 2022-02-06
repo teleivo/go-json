@@ -26,6 +26,8 @@ var keywordToToken = map[string]token.TokenType{
 	"null":  token.NULL,
 }
 
+const NUL = 0 // ASCII code for "NUL" character
+
 func New(input string) *Lexer {
 	l := &Lexer{input: input}
 	l.readChar()
@@ -34,7 +36,7 @@ func New(input string) *Lexer {
 
 func (l *Lexer) readChar() {
 	if l.readPosition >= len(l.input) {
-		l.ch = 0 // ASCII code for "NUL" character
+		l.ch = NUL
 	} else {
 		l.ch = l.input[l.readPosition]
 	}
@@ -44,7 +46,7 @@ func (l *Lexer) readChar() {
 
 func (l *Lexer) peekChar() byte {
 	if l.readPosition >= len(l.input) {
-		return 0 // ASCII code for "NUL" character
+		return NUL
 	}
 	return l.input[l.readPosition]
 }
@@ -150,7 +152,7 @@ func (l *Lexer) readNumber() (string, error) {
 func (l *Lexer) readKeyword() (string, error) {
 	k := charToKeyword[l.ch]
 	pos := l.position
-	for l.ch != 0 && l.ch != ',' && l.ch != '}' && !isWhitespace(l.ch) {
+	for l.ch != NUL && l.position-pos < len(k) {
 		l.readChar()
 		if l.input[pos:l.position] != k[0:l.position-pos] {
 			return string(l.ch), fmt.Errorf("invalid token %q: expect %q", k, k)
