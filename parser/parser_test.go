@@ -19,31 +19,33 @@ func TestString(t *testing.T) {
 
 	j := p.ParseJSON()
 
-	checkParserErrors(t, p)
+	checkParserErrors(t, input, p)
 
+	tf := prefixTestPrint(t, input, t.Fatalf)
+	te := prefixTestPrint(t, input, t.Errorf)
 	if j == nil {
-		fatal(t, "returned nil", input)
+		tf("returned nil")
 	}
 	if j.Element == nil {
-		fatal(t, "returned with no element", input)
+		tf("returned with no element")
 	}
-	if !testString(t, j.Element, "broccoli") {
+	if !testString(te, j.Element, "broccoli") {
 		return
 	}
 }
 
-func testString(t *testing.T, el ast.Element, want string) bool {
+func testString(te func(format string, args ...interface{}), el ast.Element, want string) bool {
 	if el.TokenLiteral() != want {
-		t.Errorf("got %q, want %q", el.TokenLiteral(), want)
+		te("got %q, want %q", el.TokenLiteral(), want)
 		return false
 	}
 	str, ok := el.(*ast.String)
 	if !ok {
-		t.Errorf("str not *ast.String. got=%T", el)
+		te("str not *ast.String. got=%T", el)
 		return false
 	}
 	if str.Value != want {
-		t.Errorf("got %q, want %q", str.Value, want)
+		te("got %q, want %q", str.Value, want)
 		return false
 	}
 	return true
@@ -65,33 +67,35 @@ func TestBoolean(t *testing.T) {
 
 			j := p.ParseJSON()
 
-			checkParserErrors(t, p)
+			checkParserErrors(t, tt.input, p)
 
+			tf := prefixTestPrint(t, tt.input, t.Fatalf)
+			te := prefixTestPrint(t, tt.input, t.Errorf)
 			if j == nil {
-				fatal(t, "returned nil", tt.input)
+				tf("returned nil")
 			}
 			if j.Element == nil {
-				fatal(t, "returned with no element", tt.input)
+				tf("returned with no element")
 			}
-			if !testBoolean(t, j.Element, tt.want) {
+			if !testBoolean(te, j.Element, tt.want) {
 				return
 			}
 		})
 	}
 }
 
-func testBoolean(t *testing.T, el ast.Element, want bool) bool {
+func testBoolean(te func(format string, args ...interface{}), el ast.Element, want bool) bool {
 	if want := fmt.Sprintf("%t", want); el.TokenLiteral() != want {
-		t.Errorf("got %q, want %q", el.TokenLiteral(), want)
+		te("got %q, want %q", el.TokenLiteral(), want)
 		return false
 	}
 	b, ok := el.(*ast.Boolean)
 	if !ok {
-		t.Errorf("el not *ast.Boolean. got=%T", el)
+		te("el not *ast.Boolean. got=%T", el)
 		return false
 	}
 	if b.Value != want {
-		t.Errorf("got %t, want %t", b.Value, want)
+		te("got %t, want %t", b.Value, want)
 		return false
 	}
 	return true
@@ -105,27 +109,29 @@ func TestNull(t *testing.T) {
 
 	j := p.ParseJSON()
 
-	checkParserErrors(t, p)
+	checkParserErrors(t, input, p)
 
+	tf := prefixTestPrint(t, input, t.Fatalf)
+	te := prefixTestPrint(t, input, t.Errorf)
 	if j == nil {
-		fatal(t, "returned nil", input)
+		tf("returned nil")
 	}
 	if j.Element == nil {
-		fatal(t, "returned with no element", input)
+		tf("returned with no element")
 	}
-	if !testNull(t, j.Element) {
+	if !testNull(te, j.Element) {
 		return
 	}
 }
 
-func testNull(t *testing.T, el ast.Element) bool {
+func testNull(te func(format string, args ...interface{}), el ast.Element) bool {
 	if want := "null"; el.TokenLiteral() != want {
-		t.Errorf("got %q, want %q", el.TokenLiteral(), want)
+		te("got %q, want %q", el.TokenLiteral(), want)
 		return false
 	}
 	_, ok := el.(*ast.Null)
 	if !ok {
-		t.Errorf("j not *ast.Null. got=%T", el)
+		te("j not *ast.Null. got=%T", el)
 		return false
 	}
 	return true
@@ -159,24 +165,26 @@ func TestArray(t *testing.T) {
 
 			j := p.ParseJSON()
 
-			checkParserErrors(t, p)
+			checkParserErrors(t, tt.input, p)
 
+			tf := prefixTestPrint(t, tt.input, t.Fatalf)
+			te := prefixTestPrint(t, tt.input, t.Errorf)
 			if j == nil {
-				fatalf(t, "returned nil", tt.input)
+				tf("returned nil")
 			}
 			if j.Element == nil {
-				fatalf(t, "returned JSON with no element", tt.input)
+				tf("returned JSON with no element")
 			}
 			ar, ok := j.Element.(*ast.Array)
 			if !ok {
-				fatalf(t, "j.Element not *ast.Array. got=%T", tt.input, j.Element)
+				tf("j.Element not *ast.Array. got=%T", j.Element)
 			}
 
 			for i, at := range tt.ast {
 				if i >= len(ar.Elements) {
-					fatalf(t, "no element is left in array. got %d, want %d elements.", tt.input, len(ar.Elements), len(tt.ast))
+					tf("no element is left in array. got %d, want %d elements.", len(ar.Elements), len(tt.ast))
 				}
-				if !at(t, ar.Elements[i]) {
+				if !at(te, ar.Elements[i]) {
 					return
 				}
 			}
@@ -217,21 +225,23 @@ func TestArray(t *testing.T) {
 			p.ParseJSON()
 
 			errs := p.Errors()
+			f := prefixTestPrint(t, tt.input, t.Fatalf)
+			e := prefixTestPrint(t, tt.input, t.Errorf)
 			if want := 1; len(errs) != want {
-				fatalf(t, "got %d errors but want %d", tt.input, len(errs), want)
+				f("got %d errors but want %d", len(errs), want)
 			}
 			err, ok := errs[0].(*ParseError)
 			if !ok {
-				fatalf(t, "err not *ParseError got=%T", tt.input, errs[0])
+				f("err not *ParseError got=%T", errs[0])
 			}
 			if want := tt.actual; string(err.Actual.Type) != want {
-				fatalf(t, "got err.Actual %q, expected %q", tt.input, err.Actual.Type, want)
+				f("got err.Actual %q, expected %q", err.Actual.Type, want)
 			}
 			opt := cmpopts.SortSlices(func(a, b token.TokenType) bool {
 				return a < b
 			})
 			if diff := cmp.Diff(tt.expected, err.Expected, opt); diff != "" {
-				errorf(t, "err.Expected mismatch (-want, +got): %s\n", tt.input, diff)
+				e("err.Expected mismatch (-want, +got): %s\n", diff)
 			}
 		})
 	}
@@ -269,47 +279,43 @@ func TestParseError(t *testing.T) {
 	}
 }
 
-func errorf(t *testing.T, in, format string, args ...interface{}) {
-	t.Fatal(fmt.Sprintf("ParseJSON(%q): ", in) + fmt.Sprintf(format, args...))
+func prefixTestPrint(t *testing.T, input string, prn func(format string, args ...interface{})) func(format string, args ...interface{}) {
+	pf := fmt.Sprintf("ParseJSON(%q): ", input)
+	return func(format string, args ...interface{}) {
+		prn(pf + fmt.Sprintf(format, args...))
+	}
 }
 
-func fatal(t *testing.T, msg, in string) {
-	fatalf(t, in, "")
-}
-
-func fatalf(t *testing.T, in, format string, args ...interface{}) {
-	t.Fatal(fmt.Sprintf("ParseJSON(%q): ", in) + fmt.Sprintf(format, args...))
-}
-
-func checkParserErrors(t *testing.T, p *Parser) {
+func checkParserErrors(t *testing.T, input string, p *Parser) {
+	te := prefixTestPrint(t, input, t.Errorf)
 	errors := p.Errors()
 	if len(errors) == 0 {
 		return
 	}
 
-	t.Errorf("parser has %d errors.", len(errors))
+	te("parser has %d errors.", len(errors))
 	for _, err := range errors {
-		t.Errorf("parser error: %q", err)
+		te("parser error: %q", err)
 	}
 	t.FailNow()
 }
 
-type astAssertion func(t *testing.T, el ast.Element) bool
+type astAssertion func(te func(format string, args ...interface{}), el ast.Element) bool
 
 func assertNull() astAssertion {
-	return func(t *testing.T, el ast.Element) bool {
-		return testNull(t, el)
+	return func(te func(format string, args ...interface{}), el ast.Element) bool {
+		return testNull(te, el)
 	}
 }
 
 func assertBoolean(want bool) astAssertion {
-	return func(t *testing.T, el ast.Element) bool {
-		return testBoolean(t, el, want)
+	return func(te func(format string, args ...interface{}), el ast.Element) bool {
+		return testBoolean(te, el, want)
 	}
 }
 
 func assertString(want string) astAssertion {
-	return func(t *testing.T, el ast.Element) bool {
-		return testString(t, el, want)
+	return func(te func(format string, args ...interface{}), el ast.Element) bool {
+		return testString(te, el, want)
 	}
 }
