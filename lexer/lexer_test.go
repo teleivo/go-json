@@ -221,10 +221,12 @@ func TestNextToken(t *testing.T) {
 		}{
 			{`TRUE`, `T`, token.ILLEGAL, "uppercase true is invalid"},
 			{`tru`, `tru`, token.ILLEGAL, "incomplete true"},
+			{`tru,e`, `e`, token.ILLEGAL, "true interrupted by invalid character"},
 			{`t`, `t`, token.ILLEGAL, "incomplete true"},
 			{`FALSE`, `F`, token.ILLEGAL, "uppercase false is invalid"},
 			{`f`, `f`, token.ILLEGAL, "incomplete false"},
 			{`fals`, `fals`, token.ILLEGAL, "incomplete false"},
+			{`fals,e`, `e`, token.ILLEGAL, "false interrupted by invalid character"},
 		}
 
 		for _, tt := range tests {
@@ -288,6 +290,7 @@ func TestNextToken(t *testing.T) {
 		}{
 			{`NULL`, `N`, token.ILLEGAL, "uppercase null is invalid"},
 			{`nul`, `nul`, token.ILLEGAL, "incomplete null"},
+			{`nul,l`, `l`, token.ILLEGAL, "null interrupted by invalid character"},
 			{`n`, `n`, token.ILLEGAL, "incomplete null"},
 		}
 
