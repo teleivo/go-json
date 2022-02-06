@@ -34,23 +34,6 @@ func TestString(t *testing.T) {
 	}
 }
 
-func testString(te func(format string, args ...interface{}), el ast.Element, want string) bool {
-	if el.TokenLiteral() != want {
-		te("got %q, want %q", el.TokenLiteral(), want)
-		return false
-	}
-	str, ok := el.(*ast.String)
-	if !ok {
-		te("str not *ast.String. got=%T", el)
-		return false
-	}
-	if str.Value != want {
-		te("got %q, want %q", str.Value, want)
-		return false
-	}
-	return true
-}
-
 func TestBoolean(t *testing.T) {
 	test := []struct {
 		input string
@@ -84,23 +67,6 @@ func TestBoolean(t *testing.T) {
 	}
 }
 
-func testBoolean(te func(format string, args ...interface{}), el ast.Element, want bool) bool {
-	if want := fmt.Sprintf("%t", want); el.TokenLiteral() != want {
-		te("got %q, want %q", el.TokenLiteral(), want)
-		return false
-	}
-	b, ok := el.(*ast.Boolean)
-	if !ok {
-		te("el not *ast.Boolean. got=%T", el)
-		return false
-	}
-	if b.Value != want {
-		te("got %t, want %t", b.Value, want)
-		return false
-	}
-	return true
-}
-
 func TestNull(t *testing.T) {
 	input := `null`
 
@@ -124,19 +90,6 @@ func TestNull(t *testing.T) {
 	}
 }
 
-func testNull(te func(format string, args ...interface{}), el ast.Element) bool {
-	if want := "null"; el.TokenLiteral() != want {
-		te("got %q, want %q", el.TokenLiteral(), want)
-		return false
-	}
-	_, ok := el.(*ast.Null)
-	if !ok {
-		te("j not *ast.Null. got=%T", el)
-		return false
-	}
-	return true
-}
-
 func TestArray(t *testing.T) {
 	vt := []struct {
 		desc  string
@@ -154,6 +107,22 @@ func TestArray(t *testing.T) {
 				assertString("fantastic"),
 				assertBoolean(true),
 				assertNull(),
+				assertString("carrot"),
+			},
+		},
+		{
+			desc:  "Nested",
+			input: `[  "fantastic", [ true, [ "banana" ], null ], [], "carrot"]`,
+			ast: []astAssertion{
+				assertString("fantastic"),
+				assertArray(
+					assertBoolean(true),
+					assertArray(
+						assertString("banana"),
+					),
+					assertNull(),
+				),
+				assertArray(),
 				assertString("carrot"),
 			},
 		},
@@ -199,17 +168,17 @@ func TestArray(t *testing.T) {
 		{
 			input:    `[ `,
 			actual:   token.EOF,
-			expected: []token.TokenType{token.FALSE, token.TRUE, token.NULL, token.NUMBER, token.STRING, token.RBRACKET},
+			expected: []token.TokenType{token.FALSE, token.TRUE, token.NULL, token.NUMBER, token.STRING, token.RBRACKET, token.LBRACKET},
 		},
 		{
 			input:    `[  "fantastic",]`,
 			actual:   token.RBRACKET,
-			expected: []token.TokenType{token.FALSE, token.TRUE, token.NULL, token.NUMBER, token.STRING},
+			expected: []token.TokenType{token.FALSE, token.TRUE, token.NULL, token.NUMBER, token.STRING, token.LBRACKET},
 		},
 		{
 			input:    `[  "fantastic",`,
 			actual:   token.EOF,
-			expected: []token.TokenType{token.FALSE, token.TRUE, token.NULL, token.NUMBER, token.STRING},
+			expected: []token.TokenType{token.FALSE, token.TRUE, token.NULL, token.NUMBER, token.STRING, token.LBRACKET},
 		},
 		{
 			input:    `[  "fantastic"`,
@@ -318,4 +287,77 @@ func assertString(want string) astAssertion {
 	return func(te func(format string, args ...interface{}), el ast.Element) bool {
 		return testString(te, el, want)
 	}
+}
+
+// TODO do I want to pass in an ast? or a []astAssertion
+func assertArray(want ...astAssertion) astAssertion {
+	return func(te func(format string, args ...interface{}), el ast.Element) bool {
+		return testArray(te, el, want)
+	}
+}
+
+func testNull(te func(format string, args ...interface{}), el ast.Element) bool {
+	if want := "null"; el.TokenLiteral() != want {
+		te("got %q, want %q", el.TokenLiteral(), want)
+		return false
+	}
+	_, ok := el.(*ast.Null)
+	if !ok {
+		te("j not *ast.Null. got=%T", el)
+		return false
+	}
+	return true
+}
+
+func testBoolean(te func(format string, args ...interface{}), el ast.Element, want bool) bool {
+	if want := fmt.Sprintf("%t", want); el.TokenLiteral() != want {
+		te("got %q, want %q", el.TokenLiteral(), want)
+		return false
+	}
+	b, ok := el.(*ast.Boolean)
+	if !ok {
+		te("el not *ast.Boolean. got=%T", el)
+		return false
+	}
+	if b.Value != want {
+		te("got %t, want %t", b.Value, want)
+		return false
+	}
+	return true
+}
+
+func testString(te func(format string, args ...interface{}), el ast.Element, want string) bool {
+	if el.TokenLiteral() != want {
+		te("got %q, want %q", el.TokenLiteral(), want)
+		return false
+	}
+	str, ok := el.(*ast.String)
+	if !ok {
+		te("str not *ast.String. got=%T", el)
+		return false
+	}
+	if str.Value != want {
+		te("got %q, want %q", str.Value, want)
+		return false
+	}
+	return true
+}
+
+func testArray(te func(format string, args ...interface{}), el ast.Element, want []astAssertion) bool {
+	ar, ok := el.(*ast.Array)
+	if !ok {
+		te("j.Element not *ast.Array. got=%T", el)
+		return false
+	}
+
+	for i, at := range want {
+		if i >= len(ar.Elements) {
+			te("no element is left in array. got %d, want %d elements.", len(ar.Elements), len(want))
+			return false
+		}
+		if !at(te, ar.Elements[i]) {
+			return false
+		}
+	}
+	return true
 }

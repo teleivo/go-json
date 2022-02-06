@@ -88,7 +88,7 @@ func (p *Parser) parseArray() *ast.Array {
 	ar := &ast.Array{Token: p.curToken, Elements: make([]ast.Element, 0)}
 
 	// array should either be closed or contain an element
-	if !p.expectPeek(token.RBRACKET, token.TRUE, token.FALSE, token.NULL, token.NUMBER, token.STRING) {
+	if !p.expectPeek(token.RBRACKET, token.TRUE, token.FALSE, token.NULL, token.NUMBER, token.STRING, token.LBRACKET) {
 		return nil
 	}
 	for !p.curTokenIs(token.RBRACKET) && !p.curTokenIs(token.EOF) {
@@ -100,12 +100,9 @@ func (p *Parser) parseArray() *ast.Array {
 		}
 		// if curToken is a comma, then peekToken should be an element
 		if p.curTokenIs(token.COMMA) {
-			// TODO an array inside an array is also allowed
-			if !p.expectPeek(token.TRUE, token.FALSE, token.NULL, token.NUMBER, token.STRING) {
+			if !p.expectPeek(token.TRUE, token.FALSE, token.NULL, token.NUMBER, token.STRING, token.LBRACKET) {
 				return nil
 			}
-		} else {
-			p.nextToken()
 		}
 	}
 	return ar
