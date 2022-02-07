@@ -3,7 +3,6 @@
 * I feel like I am not advancing past the ] in parseArray. On the other hand, it seems to parse nested array well
 * add String() string to ast Node interface
 * would TokenType also benefit from a String(), printing all caps TRUE, FALSE, ... in errors is not friendly :)
-* make a proper error type instead of a string
 * parse a number
 * parse an object
 
