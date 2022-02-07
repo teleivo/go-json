@@ -344,6 +344,7 @@ func testString(te func(format string, args ...interface{}), el ast.Element, wan
 }
 
 func testArray(te func(format string, args ...interface{}), el ast.Element, want []astAssertion) bool {
+	// TODO should I also test the TokenLiteral() here?
 	ar, ok := el.(*ast.Array)
 	if !ok {
 		te("j.Element not *ast.Array. got=%T", el)
