@@ -72,7 +72,7 @@ func (l *Lexer) NextToken() token.Token {
 	case '"':
 		tok.Type = token.STRING
 		tok.Literal = l.readString()
-	case 0: // NUL byte
+	case NUL:
 		tok.Literal = ""
 		tok.Type = token.EOF
 	default:
@@ -120,7 +120,7 @@ func (l *Lexer) readString() string {
 	// TODO read unicode \u1234
 	l.readChar() // do not include the outer quotes in the string value
 	pos := l.position
-	for l.ch != '"' && l.ch != 0 {
+	for l.ch != '"' && l.ch != NUL {
 		if l.ch == '\\' && l.peekChar() == '"' {
 			// move two characters
 			l.readChar()
