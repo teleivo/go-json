@@ -64,3 +64,14 @@ func (a *Array) elementNode() {}
 func (a *Array) TokenLiteral() string {
 	return a.Token.Literal
 }
+
+type Number struct {
+	Token token.Token // the token.NUMBER
+	Value float64
+}
+
+func (n *Number) TokenLiteral() string {
+	return n.Token.Literal
+}
+
+func (n *Number) elementNode() {}

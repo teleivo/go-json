@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/teleivo/go-json/ast"
@@ -65,6 +67,8 @@ func (p *Parser) parseElement() ast.Element {
 		return p.parseBoolean()
 	case token.NULL:
 		return p.parseNull()
+	case token.NUMBER:
+		return p.parseNumber()
 	case token.LBRACKET:
 		return p.parseArray()
 	default:
@@ -82,6 +86,19 @@ func (p *Parser) parseBoolean() *ast.Boolean {
 
 func (p *Parser) parseNull() *ast.Null {
 	return &ast.Null{Token: p.curToken}
+}
+
+func (p *Parser) parseNumber() *ast.Number {
+	nr := &ast.Number{Token: p.curToken}
+
+	vl, err := strconv.ParseFloat(p.curToken.Literal, 64)
+	if err != nil {
+		p.errors = append(p.errors, fmt.Errorf("failed to parse number: %w", err))
+		return nil
+	}
+	nr.Value = vl
+
+	return nr
 }
 
 func (p *Parser) parseArray() *ast.Array {

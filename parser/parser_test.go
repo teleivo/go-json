@@ -90,6 +90,107 @@ func TestNull(t *testing.T) {
 	}
 }
 
+func TestNumber(t *testing.T) {
+	vt := []struct {
+		desc  string
+		input string
+		want  float64
+	}{
+		{
+			desc:  "Integer",
+			input: `1501245569`,
+			want:  1501245569,
+		},
+		{
+			desc:  "Float",
+			input: `2.34`,
+			want:  2.34,
+		},
+		{
+			desc:  "Exponent",
+			input: `-3.146e7`,
+			want:  -3.146e+07,
+		},
+	}
+	for _, tt := range vt {
+		t.Run("ParseValidNumber"+tt.desc, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l)
+
+			j := p.ParseJSON()
+
+			checkParserErrors(t, tt.input, p)
+
+			tf := prefixTestPrint(t, tt.input, t.Fatalf)
+			te := prefixTestPrint(t, tt.input, t.Errorf)
+			if j == nil {
+				tf("returned nil")
+			}
+			if j.Element == nil {
+				tf("returned with no element")
+			}
+			if !testNumber(te, j.Element, tt.want) {
+				return
+			}
+		})
+	}
+
+	// ivt := []struct {
+	// 	input    string
+	// 	actual   string
+	// 	expected []token.TokenType
+	// }{
+	// 	{
+	// 		input:    `[ `,
+	// 		actual:   token.EOF,
+	// 		expected: []token.TokenType{token.FALSE, token.TRUE, token.NULL, token.NUMBER, token.STRING, token.RBRACKET, token.LBRACKET},
+	// 	},
+	// 	{
+	// 		input:    `[  "fantastic",]`,
+	// 		actual:   token.RBRACKET,
+	// 		expected: []token.TokenType{token.FALSE, token.TRUE, token.NULL, token.NUMBER, token.STRING, token.LBRACKET},
+	// 	},
+	// 	{
+	// 		input:    `[  "fantastic",`,
+	// 		actual:   token.EOF,
+	// 		expected: []token.TokenType{token.FALSE, token.TRUE, token.NULL, token.NUMBER, token.STRING, token.LBRACKET},
+	// 	},
+	// 	{
+	// 		input:    `[  "fantastic"`,
+	// 		actual:   token.EOF,
+	// 		expected: []token.TokenType{token.COMMA, token.RBRACKET},
+	// 	},
+	// }
+	// for _, tt := range ivt {
+	// 	t.Run("ParseInvalidArray", func(t *testing.T) {
+	// 		l := lexer.New(tt.input)
+	// 		p := New(l)
+	//
+	// 		p.ParseJSON()
+	//
+	// 		errs := p.Errors()
+	// 		f := prefixTestPrint(t, tt.input, t.Fatalf)
+	// 		e := prefixTestPrint(t, tt.input, t.Errorf)
+	// 		if want := 1; len(errs) != want {
+	// 			f("got %d errors but want %d", len(errs), want)
+	// 		}
+	// 		err, ok := errs[0].(*ParseError)
+	// 		if !ok {
+	// 			f("err not *ParseError got=%T", errs[0])
+	// 		}
+	// 		if want := tt.actual; string(err.Actual.Type) != want {
+	// 			f("got err.Actual %q, expected %q", err.Actual.Type, want)
+	// 		}
+	// 		opt := cmpopts.SortSlices(func(a, b token.TokenType) bool {
+	// 			return a < b
+	// 		})
+	// 		if diff := cmp.Diff(tt.expected, err.Expected, opt); diff != "" {
+	// 			e("err.Expected mismatch (-want, +got): %s\n", diff)
+	// 		}
+	// 	})
+	// }
+}
+
 func TestArray(t *testing.T) {
 	vt := []struct {
 		desc  string
@@ -338,6 +439,23 @@ func testString(te func(format string, args ...interface{}), el ast.Element, wan
 	}
 	if str.Value != want {
 		te("got %q, want %q", str.Value, want)
+		return false
+	}
+	return true
+}
+
+func testNumber(te func(format string, args ...interface{}), el ast.Element, want float64) bool {
+	// if el.TokenLiteral() != want {
+	// 	te("got %q, want %q", el.TokenLiteral(), want)
+	// 	return false
+	// }
+	nr, ok := el.(*ast.Number)
+	if !ok {
+		te("nr not *ast.Number. got=%T", el)
+		return false
+	}
+	if nr.Value != want {
+		te("got %f, want %f", nr.Value, want)
 		return false
 	}
 	return true
