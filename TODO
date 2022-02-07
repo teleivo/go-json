@@ -5,6 +5,7 @@
 * would TokenType also benefit from a String(), printing all caps TRUE, FALSE, ... in errors is not friendly :)
 * parse a number
 * parse an object
+* create a lexer error type with more context
 
 ## IDEAS
 
