@@ -1,14 +1,19 @@
 # TODO
 
+* parse a number
+* ignore linting errors in test that are false-positives
+* adapt ParseError to an interface? failing to parse a number is different to getting un unexpected token (maybe UnexpectedTokenErr)
+  how to I treat lexer errors? Should I wrap them?
+* create a lexer error type with more context
 * I feel like I am not advancing past the ] in parseArray. On the other hand, it seems to parse nested array well
 * add String() string to ast Node interface
 * would TokenType also benefit from a String(), printing all caps TRUE, FALSE, ... in errors is not friendly :)
-* parse a number
 * parse an object
-* create a lexer error type with more context
+* adapt tests to use maps instead of test slices, so the order of tests cannot hide potential bugs
 
 ## IDEAS
 
+* try out fuzzing
 * adapt lexer to use io.Reader and filename
 * provide context to error messages. in what file, line, col is the error.
 * write a CLI that takes a JSON from stdin to parse it
