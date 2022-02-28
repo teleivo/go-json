@@ -1,6 +1,7 @@
 # TODO
 
 * parse a number
+* support unicode by using text/scanner in lexer
 * ignore linting errors in test that are false-positives
 * adapt ParseError to an interface? failing to parse a number is different to getting un unexpected token (maybe UnexpectedTokenErr)
   how to I treat lexer errors? Should I wrap them?
@@ -14,10 +15,8 @@
 ## IDEAS
 
 * try out fuzzing
-* adapt lexer to use io.Reader and filename
 * provide context to error messages. in what file, line, col is the error.
 * write a CLI that takes a JSON from stdin to parse it
-* support unicode
 * try out fuzzing for testing
 * use the parser to write a JSON stats CLI. How many arrays, objects are in the
 JSON? How deeply nested is the JSON? How many nodes per type?
