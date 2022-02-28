@@ -34,13 +34,16 @@ func (p *Parser) nextToken() {
 func (p *Parser) ParseJSON() (*ast.JSON, error) {
 	j := &ast.JSON{}
 
-	for !p.curTokenIs(token.EOF) {
+	for !p.curTokenIs(token.EOF) && !p.curTokenIs(token.ILLEGAL) {
 		el, err := p.parseElement()
 		if err != nil {
 			return j, err
 		}
 		j.Element = el
 		p.nextToken()
+	}
+	if p.curTokenIs(token.ILLEGAL) {
+		return j, &ParseError{Actual: p.curToken}
 	}
 	return j, nil
 }

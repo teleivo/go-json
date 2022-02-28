@@ -261,6 +261,18 @@ func TestArray(t *testing.T) {
 	}
 }
 
+func TestParseIllegal(t *testing.T) {
+	input := `2.a34`
+	l := lexer.New(input)
+	p := New(l)
+
+	_, err := p.ParseJSON()
+
+	if err == nil {
+		t.Fatal("expected error but got none")
+	}
+}
+
 func TestParseError(t *testing.T) {
 	test := []struct {
 		desc  string
