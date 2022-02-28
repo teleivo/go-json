@@ -14,11 +14,10 @@ type Parser struct {
 	l         *lexer.Lexer
 	curToken  token.Token
 	peekToken token.Token
-	errors    []error
 }
 
 func New(l *lexer.Lexer) *Parser {
-	p := &Parser{l: l, errors: []error{}}
+	p := &Parser{l: l}
 
 	// read two tokens, so curToken and peekToken are both set
 	p.nextToken()
@@ -32,19 +31,18 @@ func (p *Parser) nextToken() {
 	p.peekToken = p.l.NextToken()
 }
 
-func (p *Parser) Errors() []error {
-	return p.errors
-}
-
-func (p *Parser) ParseJSON() *ast.JSON {
+func (p *Parser) ParseJSON() (*ast.JSON, error) {
 	j := &ast.JSON{}
 
 	for !p.curTokenIs(token.EOF) {
-		el := p.parseElement()
+		el, err := p.parseElement()
+		if err != nil {
+			return j, err
+		}
 		j.Element = el
 		p.nextToken()
 	}
-	return j
+	return j, nil
 }
 
 func (p *Parser) curTokenIs(t token.TokenType) bool {
@@ -55,11 +53,7 @@ func (p *Parser) peekTokenIs(t token.TokenType) bool {
 	return p.peekToken.Type == t
 }
 
-func (p *Parser) peekError(tt ...token.TokenType) {
-	p.errors = append(p.errors, &ParseError{Expected: tt, Actual: p.peekToken})
-}
-
-func (p *Parser) parseElement() ast.Element {
+func (p *Parser) parseElement() (ast.Element, error) {
 	switch p.curToken.Type {
 	case token.STRING:
 		return p.parseString()
@@ -72,68 +66,69 @@ func (p *Parser) parseElement() ast.Element {
 	case token.LBRACKET:
 		return p.parseArray()
 	default:
-		return nil
+		return nil, nil
 	}
 }
 
-func (p *Parser) parseString() *ast.String {
-	return &ast.String{Token: p.curToken, Value: p.curToken.Literal}
+func (p *Parser) parseString() (*ast.String, error) {
+	return &ast.String{Token: p.curToken, Value: p.curToken.Literal}, nil
 }
 
-func (p *Parser) parseBoolean() *ast.Boolean {
-	return &ast.Boolean{Token: p.curToken, Value: p.curToken.Literal == "true"}
+func (p *Parser) parseBoolean() (*ast.Boolean, error) {
+	return &ast.Boolean{Token: p.curToken, Value: p.curToken.Literal == "true"}, nil
 }
 
-func (p *Parser) parseNull() *ast.Null {
-	return &ast.Null{Token: p.curToken}
+func (p *Parser) parseNull() (*ast.Null, error) {
+	return &ast.Null{Token: p.curToken}, nil
 }
 
-func (p *Parser) parseNumber() *ast.Number {
+func (p *Parser) parseNumber() (*ast.Number, error) {
 	nr := &ast.Number{Token: p.curToken}
 
 	vl, err := strconv.ParseFloat(p.curToken.Literal, 64)
 	if err != nil {
-		p.errors = append(p.errors, fmt.Errorf("failed to parse number: %w", err))
-		return nil
+		return nil, fmt.Errorf("failed to parse number: %w", err)
 	}
 	nr.Value = vl
 
-	return nr
+	return nr, nil
 }
 
-func (p *Parser) parseArray() *ast.Array {
+func (p *Parser) parseArray() (*ast.Array, error) {
 	ar := &ast.Array{Token: p.curToken, Elements: make([]ast.Element, 0)}
 
 	// array should either be closed or contain an element
-	if !p.expectPeek(token.RBRACKET, token.TRUE, token.FALSE, token.NULL, token.NUMBER, token.STRING, token.LBRACKET) {
-		return nil
+	if err := p.expectPeek(token.RBRACKET, token.TRUE, token.FALSE, token.NULL, token.NUMBER, token.STRING, token.LBRACKET); err != nil {
+		return nil, err
 	}
 	for !p.curTokenIs(token.RBRACKET) && !p.curTokenIs(token.EOF) {
-		el := p.parseElement()
+		el, err := p.parseElement()
+		if err != nil {
+			return nil, err
+		}
 		ar.Elements = append(ar.Elements, el)
 
-		if !p.expectPeek(token.COMMA, token.RBRACKET) {
-			return nil
+		if err := p.expectPeek(token.COMMA, token.RBRACKET); err != nil {
+			return nil, err
 		}
 		// if curToken is a comma, then peekToken should be an element
 		if p.curTokenIs(token.COMMA) {
-			if !p.expectPeek(token.TRUE, token.FALSE, token.NULL, token.NUMBER, token.STRING, token.LBRACKET) {
-				return nil
+			if err := p.expectPeek(token.TRUE, token.FALSE, token.NULL, token.NUMBER, token.STRING, token.LBRACKET); err != nil {
+				return nil, err
 			}
 		}
 	}
-	return ar
+	return ar, nil
 }
 
-func (p *Parser) expectPeek(tt ...token.TokenType) bool {
+func (p *Parser) expectPeek(tt ...token.TokenType) error {
 	for _, t := range tt {
 		if p.peekTokenIs(t) {
 			p.nextToken()
-			return true
+			return nil
 		}
 	}
-	p.peekError(tt...)
-	return false
+	return &ParseError{Expected: tt, Actual: p.peekToken}
 }
 
 type ParseError struct {

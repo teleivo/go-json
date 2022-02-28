@@ -17,9 +17,9 @@ func TestString(t *testing.T) {
 	l := lexer.New(input)
 	p := New(l)
 
-	j := p.ParseJSON()
+	j, err := p.ParseJSON()
 
-	checkParserErrors(t, input, p)
+	checkParserErrors(t, input, err)
 
 	tf := prefixTestPrint(t, input, t.Fatalf)
 	te := prefixTestPrint(t, input, t.Errorf)
@@ -48,9 +48,9 @@ func TestBoolean(t *testing.T) {
 			l := lexer.New(tt.input)
 			p := New(l)
 
-			j := p.ParseJSON()
+			j, err := p.ParseJSON()
 
-			checkParserErrors(t, tt.input, p)
+			checkParserErrors(t, tt.input, err)
 
 			tf := prefixTestPrint(t, tt.input, t.Fatalf)
 			te := prefixTestPrint(t, tt.input, t.Errorf)
@@ -73,9 +73,9 @@ func TestNull(t *testing.T) {
 	l := lexer.New(input)
 	p := New(l)
 
-	j := p.ParseJSON()
+	j, err := p.ParseJSON()
 
-	checkParserErrors(t, input, p)
+	checkParserErrors(t, input, err)
 
 	tf := prefixTestPrint(t, input, t.Fatalf)
 	te := prefixTestPrint(t, input, t.Errorf)
@@ -117,9 +117,9 @@ func TestNumber(t *testing.T) {
 			l := lexer.New(tt.input)
 			p := New(l)
 
-			j := p.ParseJSON()
+			j, err := p.ParseJSON()
 
-			checkParserErrors(t, tt.input, p)
+			checkParserErrors(t, tt.input, err)
 
 			tf := prefixTestPrint(t, tt.input, t.Fatalf)
 			te := prefixTestPrint(t, tt.input, t.Errorf)
@@ -233,9 +233,9 @@ func TestArray(t *testing.T) {
 			l := lexer.New(tt.input)
 			p := New(l)
 
-			j := p.ParseJSON()
+			j, err := p.ParseJSON()
 
-			checkParserErrors(t, tt.input, p)
+			checkParserErrors(t, tt.input, err)
 
 			tf := prefixTestPrint(t, tt.input, t.Fatalf)
 			te := prefixTestPrint(t, tt.input, t.Errorf)
@@ -292,26 +292,25 @@ func TestArray(t *testing.T) {
 			l := lexer.New(tt.input)
 			p := New(l)
 
-			p.ParseJSON()
+			_, err := p.ParseJSON()
 
-			errs := p.Errors()
-			f := prefixTestPrint(t, tt.input, t.Fatalf)
-			e := prefixTestPrint(t, tt.input, t.Errorf)
-			if want := 1; len(errs) != want {
-				f("got %d errors but want %d", len(errs), want)
+			tf := prefixTestPrint(t, tt.input, t.Fatalf)
+			te := prefixTestPrint(t, tt.input, t.Errorf)
+			if err == nil {
+				tf("got no error but want one")
 			}
-			err, ok := errs[0].(*ParseError)
+			pe, ok := err.(*ParseError)
 			if !ok {
-				f("err not *ParseError got=%T", errs[0])
+				tf("err not *ParseError got=%T", err)
 			}
-			if want := tt.actual; string(err.Actual.Type) != want {
-				f("got err.Actual %q, expected %q", err.Actual.Type, want)
+			if want := tt.actual; string(pe.Actual.Type) != want {
+				tf("got err.Actual %q, expected %q", pe.Actual.Type, want)
 			}
 			opt := cmpopts.SortSlices(func(a, b token.TokenType) bool {
 				return a < b
 			})
-			if diff := cmp.Diff(tt.expected, err.Expected, opt); diff != "" {
-				e("err.Expected mismatch (-want, +got): %s\n", diff)
+			if diff := cmp.Diff(tt.expected, pe.Expected, opt); diff != "" {
+				te("err.Expected mismatch (-want, +got): %s\n", diff)
 			}
 		})
 	}
@@ -356,18 +355,13 @@ func prefixTestPrint(t *testing.T, input string, prn func(format string, args ..
 	}
 }
 
-func checkParserErrors(t *testing.T, input string, p *Parser) {
-	te := prefixTestPrint(t, input, t.Errorf)
-	errors := p.Errors()
-	if len(errors) == 0 {
+func checkParserErrors(t *testing.T, input string, err error) {
+	if err == nil {
 		return
 	}
 
-	te("parser has %d errors.", len(errors))
-	for _, err := range errors {
-		te("parser error: %q", err)
-	}
-	t.FailNow()
+	tf := prefixTestPrint(t, input, t.Fatalf)
+	tf("parser error: %q", err)
 }
 
 type astAssertion func(te func(format string, args ...interface{}), el ast.Element) bool
