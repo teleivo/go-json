@@ -137,16 +137,17 @@ func TestNextToken(t *testing.T) {
 			{"-.200", "-", "fraction needs to be preceded by at least one digit"},
 			{"+.200", "+", "fraction needs to be preceded by at least one digit"},
 			{"1.", string(byte(0)), "fraction needs to be followed by at least one digit"},
+			{"2.a34", "a", "fraction needs to be followed by at least one digit"},
 			{"0.e+100", "e", "fraction needs to be followed by at least one digit"},
 			{"0.e-100", "e", "fraction needs to be followed by at least one digit"},
 			{"0.e100", "e", "fraction needs to be followed by at least one digit"},
 			{"0.E+100", "E", "fraction needs to be followed by at least one digit"},
 			{"0.E-100", "E", "fraction needs to be followed by at least one digit"},
 			{"0.E100", "E", "fraction needs to be followed by at least one digit"},
-			{"0.200+e100", "+", "exponent needs cannot be preceded by sign"},
-			{"0.200-e100", "-", "exponent needs cannot be preceded by sign"},
-			{"0.200+E100", "+", "exponent needs cannot be preceded by sign"},
-			{"0.200-E100", "-", "exponent needs cannot be preceded by sign"},
+			{"0.200+e100", "+", "exponent cannot be preceded by sign"},
+			{"0.200-e100", "-", "exponent cannot be preceded by sign"},
+			{"0.200+E100", "+", "exponent cannot be preceded by sign"},
+			{"0.200-E100", "-", "exponent cannot be preceded by sign"},
 		}
 
 		for _, tt := range tests {
