@@ -134,61 +134,6 @@ func TestNumber(t *testing.T) {
 			}
 		})
 	}
-
-	// ivt := []struct {
-	// 	input    string
-	// 	actual   string
-	// 	expected []token.TokenType
-	// }{
-	// 	{
-	// 		input:    `[ `,
-	// 		actual:   token.EOF,
-	// 		expected: []token.TokenType{token.FALSE, token.TRUE, token.NULL, token.NUMBER, token.STRING, token.RBRACKET, token.LBRACKET},
-	// 	},
-	// 	{
-	// 		input:    `[  "fantastic",]`,
-	// 		actual:   token.RBRACKET,
-	// 		expected: []token.TokenType{token.FALSE, token.TRUE, token.NULL, token.NUMBER, token.STRING, token.LBRACKET},
-	// 	},
-	// 	{
-	// 		input:    `[  "fantastic",`,
-	// 		actual:   token.EOF,
-	// 		expected: []token.TokenType{token.FALSE, token.TRUE, token.NULL, token.NUMBER, token.STRING, token.LBRACKET},
-	// 	},
-	// 	{
-	// 		input:    `[  "fantastic"`,
-	// 		actual:   token.EOF,
-	// 		expected: []token.TokenType{token.COMMA, token.RBRACKET},
-	// 	},
-	// }
-	// for _, tt := range ivt {
-	// 	t.Run("ParseInvalidArray", func(t *testing.T) {
-	// 		l := lexer.New(tt.input)
-	// 		p := New(l)
-	//
-	// 		p.ParseJSON()
-	//
-	// 		errs := p.Errors()
-	// 		f := prefixTestPrint(t, tt.input, t.Fatalf)
-	// 		e := prefixTestPrint(t, tt.input, t.Errorf)
-	// 		if want := 1; len(errs) != want {
-	// 			f("got %d errors but want %d", len(errs), want)
-	// 		}
-	// 		err, ok := errs[0].(*ParseError)
-	// 		if !ok {
-	// 			f("err not *ParseError got=%T", errs[0])
-	// 		}
-	// 		if want := tt.actual; string(err.Actual.Type) != want {
-	// 			f("got err.Actual %q, expected %q", err.Actual.Type, want)
-	// 		}
-	// 		opt := cmpopts.SortSlices(func(a, b token.TokenType) bool {
-	// 			return a < b
-	// 		})
-	// 		if diff := cmp.Diff(tt.expected, err.Expected, opt); diff != "" {
-	// 			e("err.Expected mismatch (-want, +got): %s\n", diff)
-	// 		}
-	// 	})
-	// }
 }
 
 func TestArray(t *testing.T) {
