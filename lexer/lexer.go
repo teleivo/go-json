@@ -70,8 +70,13 @@ func (l *Lexer) NextToken() token.Token {
 	case ']':
 		tok = newToken(token.RBRACKET, l.ch)
 	case '"':
-		tok.Type = token.STRING
-		tok.Literal = l.readString()
+		lit, err := l.readString()
+		tok.Literal = lit
+		if err != nil {
+			tok.Type = token.ILLEGAL
+		} else {
+			tok.Type = token.STRING
+		}
 	case NUL:
 		tok.Literal = ""
 		tok.Type = token.EOF
@@ -116,12 +121,14 @@ func isWhitespace(ch byte) bool {
 	return false
 }
 
-func (l *Lexer) readString() string {
+func (l *Lexer) readString() (string, error) {
 	// TODO read unicode \u1234
+	var closing bool
 	l.readChar() // do not include the outer quotes in the string value
 	pos := l.position
 	for l.ch != '"' && l.ch != NUL {
 		if l.ch == '\\' && l.peekChar() == '"' {
+			closing = true
 			// move two characters
 			l.readChar()
 			l.readChar()
@@ -129,7 +136,10 @@ func (l *Lexer) readString() string {
 			l.readChar()
 		}
 	}
-	return l.input[pos:l.position]
+	if !closing && l.ch != '"' {
+		return string(l.ch), errors.New("missing closing quotes \"")
+	}
+	return l.input[pos:l.position], nil
 }
 
 func (l *Lexer) readNumber() (string, error) {

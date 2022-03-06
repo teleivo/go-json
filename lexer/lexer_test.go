@@ -85,6 +85,32 @@ func TestLexStrings(t *testing.T) {
 	}
 }
 
+func TestLexInvalidStrings(t *testing.T) {
+	tests := []struct {
+		input           string
+		expectedLiteral string
+		description     string
+	}{
+		{`"fries`, string(byte(0)), "missing closing quotes"},
+	}
+
+	for _, tt := range tests {
+		l := New(tt.input)
+
+		tok := l.NextToken()
+
+		if tok.Type != token.ILLEGAL {
+			t.Fatalf("input %q - token type wrong. got=%s, want=%s",
+				tt.input, tok.Type, token.ILLEGAL)
+		}
+
+		if tok.Literal != tt.expectedLiteral {
+			t.Fatalf("input %q - token literal wrong. got=%s, want=%s",
+				tt.input, tok.Literal, tt.expectedLiteral)
+		}
+	}
+}
+
 func TestLexNumbers(t *testing.T) {
 	tests := []struct {
 		input           string
