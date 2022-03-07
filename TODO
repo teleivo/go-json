@@ -1,7 +1,10 @@
 # TODO
 
-* parse a number
 * support unicode by using text/scanner in lexer
+* parse a number
+* think about what string literal the lexer should return in case of error
+  for example when lexing `2.a3`, should it be `2` or `2.`? or simply an empty string
+  since error will be non-nil?
 * ignore linting errors in test that are false-positives
 * adapt ParseError to an interface? failing to parse a number is different to getting un unexpected token (maybe UnexpectedTokenErr)
   how to I treat lexer errors? Should I wrap them?

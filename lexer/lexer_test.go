@@ -91,7 +91,7 @@ func TestLexInvalidStrings(t *testing.T) {
 		expectedLiteral string
 		description     string
 	}{
-		{`"fries`, string(byte(0)), "missing closing quotes"},
+		{`"fries`, "fries", "missing closing quotes"},
 	}
 
 	for _, tt := range tests {
@@ -164,8 +164,8 @@ func TestLexInvalidNumbers(t *testing.T) {
 		{".200", ".", "fraction needs to be preceded by at least one digit"},
 		{"-.200", "-", "fraction needs to be preceded by at least one digit"},
 		{"+.200", "+", "fraction needs to be preceded by at least one digit"},
-		{"1.", string(byte(0)), "fraction needs to be followed by at least one digit"},
-		{"2.a34", "a", "fraction needs to be followed by at least one digit"},
+		{"1.", "1", "fraction needs to be followed by at least one digit"},
+		{"2.a34", "2", "fraction needs to be followed by at least one digit"},
 		{"0.e+100", "e", "fraction needs to be followed by at least one digit"},
 		{"0.e-100", "e", "fraction needs to be followed by at least one digit"},
 		{"0.e100", "e", "fraction needs to be followed by at least one digit"},
@@ -252,12 +252,12 @@ func TestLexInvalidTrueAndFalse(t *testing.T) {
 	}{
 		{`TRUE`, `T`, token.ILLEGAL, "uppercase true is invalid"},
 		{`tru`, `tru`, token.ILLEGAL, "incomplete true"},
-		{`tru,e`, `e`, token.ILLEGAL, "true interrupted by invalid character"},
+		{`tru,e`, `tru,`, token.ILLEGAL, "true interrupted by invalid character"},
 		{`t`, `t`, token.ILLEGAL, "incomplete true"},
 		{`FALSE`, `F`, token.ILLEGAL, "uppercase false is invalid"},
 		{`f`, `f`, token.ILLEGAL, "incomplete false"},
 		{`fals`, `fals`, token.ILLEGAL, "incomplete false"},
-		{`fals,e`, `e`, token.ILLEGAL, "false interrupted by invalid character"},
+		{`fals,e`, `fals,`, token.ILLEGAL, "false interrupted by invalid character"},
 	}
 
 	for _, tt := range tests {
@@ -323,7 +323,7 @@ func TestLexInvalidNull(t *testing.T) {
 	}{
 		{`NULL`, `N`, token.ILLEGAL, "uppercase null is invalid"},
 		{`nul`, `nul`, token.ILLEGAL, "incomplete null"},
-		{`nul,l`, `l`, token.ILLEGAL, "null interrupted by invalid character"},
+		{`nul,l`, `nul,`, token.ILLEGAL, "null interrupted by invalid character"},
 		{`n`, `n`, token.ILLEGAL, "incomplete null"},
 	}
 

@@ -3,18 +3,22 @@ package lexer
 import (
 	"errors"
 	"fmt"
+	"strings"
+	"text/scanner"
 
 	"github.com/teleivo/go-json/token"
 )
 
 type Lexer struct {
-	input        string
+	input   string
+	scanner scanner.Scanner
+	// TODO store scanner.Position instead of int
 	position     int  // current position in input (current char)
 	readPosition int  // current reading position (after current char)
-	ch           byte // current char under examination
+	ch           rune // current char under examination
 }
 
-var charToKeyword = map[byte]string{
+var charToKeyword = map[rune]string{
 	't': "true",
 	'f': "false",
 	'n': "null",
@@ -26,29 +30,22 @@ var keywordToToken = map[string]token.TokenType{
 	"null":  token.NULL,
 }
 
-const NUL = 0 // ASCII code for "NUL" character
-
 func New(input string) *Lexer {
-	l := &Lexer{input: input}
+	var scanner scanner.Scanner
+	scanner.Init(strings.NewReader(input))
+	l := &Lexer{input: input, scanner: scanner, position: scanner.Pos().Offset, readPosition: scanner.Pos().Offset}
 	l.readChar()
 	return l
 }
 
 func (l *Lexer) readChar() {
-	if l.readPosition >= len(l.input) {
-		l.ch = NUL
-	} else {
-		l.ch = l.input[l.readPosition]
-	}
+	l.ch = l.scanner.Next()
 	l.position = l.readPosition
-	l.readPosition += 1
+	l.readPosition = l.scanner.Pos().Offset
 }
 
-func (l *Lexer) peekChar() byte {
-	if l.readPosition >= len(l.input) {
-		return NUL
-	}
-	return l.input[l.readPosition]
+func (l *Lexer) peekChar() rune {
+	return l.scanner.Peek()
 }
 
 func (l *Lexer) NextToken() token.Token {
@@ -77,7 +74,7 @@ func (l *Lexer) NextToken() token.Token {
 		} else {
 			tok.Type = token.STRING
 		}
-	case NUL:
+	case scanner.EOF:
 		tok.Literal = ""
 		tok.Type = token.EOF
 	default:
@@ -114,7 +111,7 @@ func (l *Lexer) skipWhitespace() {
 	}
 }
 
-func isWhitespace(ch byte) bool {
+func isWhitespace(ch rune) bool {
 	if ch == ' ' || ch == '\t' || ch == '\n' || ch == '\b' || ch == '\r' || ch == '\f' {
 		return true
 	}
@@ -126,7 +123,7 @@ func (l *Lexer) readString() (string, error) {
 	var closing bool
 	l.readChar() // do not include the outer quotes in the string value
 	pos := l.position
-	for l.ch != '"' && l.ch != NUL {
+	for l.ch != '"' && l.ch != scanner.EOF {
 		if l.ch == '\\' && l.peekChar() == '"' {
 			closing = true
 			// move two characters
@@ -137,7 +134,7 @@ func (l *Lexer) readString() (string, error) {
 		}
 	}
 	if !closing && l.ch != '"' {
-		return string(l.ch), errors.New("missing closing quotes \"")
+		return l.input[pos:l.position], errors.New("missing closing quotes \"")
 	}
 	return l.input[pos:l.position], nil
 }
@@ -149,7 +146,7 @@ func (l *Lexer) readNumber() (string, error) {
 			return string(l.ch), errors.New("invalid number token: '.' needs to be preceded by a digit")
 		}
 		if l.ch == '.' && !isDigit(l.peekChar()) {
-			return string(l.peekChar()), errors.New("invalid number token: '.' needs to be followed by a digit")
+			return l.input[pos:l.position], errors.New("invalid number token: '.' needs to be followed by a digit")
 		}
 		if (l.peekChar() == '+' || l.peekChar() == '-') && (l.ch != 'e' && l.ch != 'E') {
 			return string(l.peekChar()), errors.New("invalid number token: '+' or '-' needs to be preceded by 'e' or 'E' for exponent")
@@ -162,10 +159,10 @@ func (l *Lexer) readNumber() (string, error) {
 func (l *Lexer) readKeyword() (string, error) {
 	k := charToKeyword[l.ch]
 	pos := l.position
-	for l.ch != NUL && l.position-pos < len(k) {
+	for l.ch != scanner.EOF && l.position-pos < len(k) {
 		l.readChar()
 		if l.input[pos:l.position] != k[0:l.position-pos] {
-			return string(l.ch), fmt.Errorf("invalid token %q: expect %q", k, k)
+			return l.input[pos:l.position], fmt.Errorf("invalid token %q: expect %q", k, k)
 		}
 	}
 	if l.input[pos:l.position] != k {
@@ -174,19 +171,19 @@ func (l *Lexer) readKeyword() (string, error) {
 	return l.input[pos:l.position], nil
 }
 
-func newToken(t token.TokenType, ch byte) token.Token {
+func newToken(t token.TokenType, ch rune) token.Token {
 	return token.Token{Type: t, Literal: string(ch)}
 }
 
-func isNumber(ch byte) bool {
+func isNumber(ch rune) bool {
 	return isDigit(ch) || ch == '-'
 }
 
-func isDigit(ch byte) bool {
+func isDigit(ch rune) bool {
 	return '0' <= ch && ch <= '9'
 }
 
-func isKeyword(ch byte) bool {
+func isKeyword(ch rune) bool {
 	_, ok := charToKeyword[ch]
 	return ok
 }
