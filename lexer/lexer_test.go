@@ -66,6 +66,7 @@ func TestLexStrings(t *testing.T) {
 		{`"french\tfries\r\n"`, `french\tfries\r\n`},
 		{`"french\"fries\"`, `french\"fries\"`},
 		{`"\/french\\fries\b"`, `\/french\\fries\b`},
+		{`"🏊🤗你好"`, `🏊🤗你好`},
 	}
 
 	for _, tt := range tests {

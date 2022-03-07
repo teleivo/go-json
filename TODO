@@ -1,7 +1,6 @@
 # TODO
 
 * set the scanner.Error function so errors are not printed to Stderr
-* support unicode by using text/scanner in lexer
 * parse a number
 * think about what string literal the lexer should return in case of error
   for example when lexing `2.a3`, should it be `2` or `2.`? or simply an empty string
